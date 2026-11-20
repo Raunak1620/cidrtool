@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/31 Subnet Mask: 255.255.255.254 (2 Usable Hosts) | NetKit</title>
+<meta name="description" content="/31 CIDR = subnet mask 255.255.255.254, wildcard 0.0.0.1, 2 total addresses and 2 usable hosts. Example ranges and Cisco, Junos and Linux config.">
+<link rel="canonical" href="https://yourdomain.com/cidr/31/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NetKit">
+<meta property="og:title" content="/31 Subnet Mask: 255.255.255.254 (2 Usable Hosts) | NetKit">
+<meta property="og:description" content="/31 CIDR = subnet mask 255.255.255.254, wildcard 0.0.0.1, 2 total addresses and 2 usable hosts. Example ranges and Cisco, Junos and Linux config.">
+<meta property="og:url" content="https://yourdomain.com/cidr/31/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0b6bde">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem('nk-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="stylesheet" href="/assets/css/style.css?v=f6190cd9">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How many usable hosts are in a /31?", "acceptedAnswer": {"@type": "Answer", "text": "2. A /31 uses both addresses on point-to-point links (RFC 3021)."}}, {"@type": "Question", "name": "What is the subnet mask for /31?", "acceptedAnswer": {"@type": "Answer", "text": "255.255.255.254. The wildcard mask, used in ACLs and OSPF network statements, is 0.0.0.1."}}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://yourdomain.com/"}, {"@type": "ListItem", "position": 2, "name": "Subnet chart", "item": "https://yourdomain.com/subnet-chart/"}, {"@type": "ListItem", "position": 3, "name": "/31", "item": "https://yourdomain.com/cidr/31/"}]}</script>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">/24</span>NetKit</a>
+<div class="header-actions"><button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">Theme</button></div>
+</div></header>
+<nav class="tabs" aria-label="Tools"><div class="wrap"><a class="tab" href="/what-is-my-ip/">My IP</a><a class="tab" href="/cidr-calculator/">CIDR Calculator</a><a class="tab" href="/dns-lookup/">DNS Lookup</a><a class="tab" href="/bgp-asn-lookup/">BGP / ASN</a><a class="tab" href="/subnet-chart/">Subnet Chart</a><a class="tab" href="/port-numbers/">Port Numbers</a><a class="tab" href="/ip-converter/">IP Converter</a><a class="tab" href="/bandwidth-calculator/">Bandwidth Calc</a></div></nav>
+<script src="/assets/js/net.js?v=44da7539"></script>
+<script src="/assets/js/app.js?v=411fe5fd"></script>
+<main><div class="wrap"><div class="layout"><div class="content"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> &rsaquo; /31</nav><h1>/31 Subnet Mask: 255.255.255.254</h1><p class="lead">2 addresses · 2 usable hosts · wildcard 0.0.0.1</p><div class="tool"><dl class="kv"><div><dt>CIDR notation</dt><dd class="mono copyable">/31</dd></div><div><dt>Subnet mask</dt><dd class="mono copyable">255.255.255.254</dd></div><div><dt>Wildcard mask</dt><dd class="mono copyable">0.0.0.1</dd></div><div><dt>Total addresses</dt><dd class="mono copyable">2</dd></div><div><dt>Usable hosts</dt><dd class="mono copyable">2</dd></div><div><dt>Binary mask</dt><dd class="mono copyable">11111111.11111111.11111111.11111110</dd></div><div><dt>Host bits</dt><dd class="mono copyable">1</dd></div></dl></div><section class="article"><h2>What a /31 means</h2><p>A /31 has two addresses and no network or broadcast address (RFC 3021), so every address is usable. It is the modern choice for point-to-point links.</p><p>The prefix length is the number of leading bits that identify the network. A /31 uses 31 network bits and leaves 1 host bits, so the block contains 2 addresses. Usable hosts: 2<sup>(32−31)</sup> = 2; /31 and /32 are special cases.</p><h2>Example /31 blocks inside 192.168.1.0/24</h2><div class="table-wrap"><table class="data"><thead><tr><th>Network</th><th>Usable range</th><th>Broadcast</th></tr></thead><tbody><tr><td class="mono">192.168.1.0/31</td><td class="mono">192.168.1.0 – 192.168.1.1</td><td class="mono">—</td></tr><tr><td class="mono">192.168.1.2/31</td><td class="mono">192.168.1.2 – 192.168.1.3</td><td class="mono">—</td></tr><tr><td class="mono">192.168.1.4/31</td><td class="mono">192.168.1.4 – 192.168.1.5</td><td class="mono">—</td></tr><tr><td class="mono">192.168.1.6/31</td><td class="mono">192.168.1.6 – 192.168.1.7</td><td class="mono">—</td></tr><tr><td class="mono">192.168.1.8/31</td><td class="mono">192.168.1.8 – 192.168.1.9</td><td class="mono">—</td></tr><tr><td class="mono">192.168.1.10/31</td><td class="mono">192.168.1.10 – 192.168.1.11</td><td class="mono">—</td></tr><tr><td class="mono">192.168.1.12/31</td><td class="mono">192.168.1.12 – 192.168.1.13</td><td class="mono">—</td></tr><tr><td class="mono">192.168.1.14/31</td><td class="mono">192.168.1.14 – 192.168.1.15</td><td class="mono">—</td></tr><tr><td class="mono">192.168.1.16/31</td><td class="mono">192.168.1.16 – 192.168.1.17</td><td class="mono">—</td></tr><tr><td class="mono">192.168.1.18/31</td><td class="mono">192.168.1.18 – 192.168.1.19</td><td class="mono">—</td></tr><tr><td class="mono">192.168.1.20/31</td><td class="mono">192.168.1.20 – 192.168.1.21</td><td class="mono">—</td></tr><tr><td class="mono">192.168.1.22/31</td><td class="mono">192.168.1.22 – 192.168.1.23</td><td class="mono">—</td></tr><tr><td class="mono">192.168.1.24/31</td><td class="mono">192.168.1.24 – 192.168.1.25</td><td class="mono">—</td></tr><tr><td class="mono">192.168.1.26/31</td><td class="mono">192.168.1.26 – 192.168.1.27</td><td class="mono">—</td></tr><tr><td class="mono">192.168.1.28/31</td><td class="mono">192.168.1.28 – 192.168.1.29</td><td class="mono">—</td></tr><tr><td class="mono">192.168.1.30/31</td><td class="mono">192.168.1.30 – 192.168.1.31</td><td class="mono">—</td></tr></tbody></table></div><p class='muted'>Showing the first 16 of 128 blocks.</p><h2>Configuration examples</h2><h3>Cisco IOS</h3><pre class="code">interface Vlan10
+ ip address 192.168.1.0 255.255.255.254
+!
+access-list 10 permit 192.168.1.0 0.0.0.1</pre><h3>Juniper Junos</h3><pre class="code">set interfaces ge-0/0/0 unit 0 family inet address 192.168.1.0/31</pre><h3>Linux</h3><pre class="code">ip addr add 192.168.1.0/31 dev eth0</pre><p>Addresses shown are examples from private or documentation space. Replace them with your own plan.</p><h2>FAQ</h2><details><summary>How many usable hosts are in a /31?</summary><p>2. A /31 uses both addresses on point-to-point links (RFC 3021).</p></details><details><summary>What is the subnet mask for /31?</summary><p>255.255.255.254. The wildcard mask, used in ACLs and OSPF network statements, is 0.0.0.1.</p></details><p class="chips"><a href="/cidr/30/">&larr; /30</a> · <a href="/subnet-chart/">Full subnet chart</a> · <a href="/cidr-calculator/">CIDR calculator</a> · <a href="/cidr/32/">/32 &rarr;</a></p></section></div></div></div></main>
+<footer class="site-footer"><div class="wrap">
+<div class="cols">
+<div><h4>NetKit</h4><p>Free online tools for network engineers. Calculators run in your browser; lookups use public APIs.</p></div>
+<div><h4>Tools</h4><ul><li><a href="/what-is-my-ip/">My IP</a></li><li><a href="/cidr-calculator/">CIDR Calculator</a></li><li><a href="/dns-lookup/">DNS Lookup</a></li><li><a href="/bgp-asn-lookup/">BGP / ASN</a></li><li><a href="/subnet-chart/">Subnet Chart</a></li><li><a href="/port-numbers/">Port Numbers</a></li><li><a href="/ip-converter/">IP Converter</a></li><li><a href="/bandwidth-calculator/">Bandwidth Calc</a></li></ul></div>
+<div><h4>Company</h4><ul><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+</div>
+<p class="fine">&copy; 2026 NetKit. Results are provided for information only; verify before using them in production changes.</p>
+</div></footer>
+</body>
+</html>

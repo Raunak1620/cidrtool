@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DNS Lookup – Check A, MX, TXT, NS, CNAME and More | NetKit</title>
+<meta name="description" content="Free online DNS lookup. Query A, AAAA, MX, NS, TXT, CNAME, SOA and CAA records over DNS-over-HTTPS, compare Cloudflare and Google resolvers, and do reverse lookups.">
+<link rel="canonical" href="https://yourdomain.com/dns-lookup/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NetKit">
+<meta property="og:title" content="DNS Lookup – Check A, MX, TXT, NS, CNAME and More | NetKit">
+<meta property="og:description" content="Free online DNS lookup. Query A, AAAA, MX, NS, TXT, CNAME, SOA and CAA records over DNS-over-HTTPS, compare Cloudflare and Google resolvers, and do reverse lookups.">
+<meta property="og:url" content="https://yourdomain.com/dns-lookup/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0b6bde">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem('nk-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="stylesheet" href="/assets/css/style.css?v=f6190cd9">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "DNS Lookup", "url": "https://yourdomain.com/dns-lookup/", "applicationCategory": "DeveloperApplication", "operatingSystem": "Any", "browserRequirements": "Requires JavaScript", "description": "Free online DNS lookup. Query A, AAAA, MX, NS, TXT, CNAME, SOA and CAA records over DNS-over-HTTPS, compare Cloudflare and Google resolvers, and do reverse lookups.", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://yourdomain.com/"}, {"@type": "ListItem", "position": 2, "name": "DNS Lookup", "item": "https://yourdomain.com/dns-lookup/"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Why do the two resolvers show different results?", "acceptedAnswer": {"@type": "Answer", "text": "Each resolver caches answers for the record's TTL. After a change, one resolver may still serve the old value until its cache expires. Wait for the TTL shown in the results, then query again."}}, {"@type": "Question", "name": "What does NXDOMAIN mean?", "acceptedAnswer": {"@type": "Answer", "text": "The name does not exist. Check the spelling, or confirm the record has been created in the authoritative zone."}}, {"@type": "Question", "name": "What does the DNSSEC validated badge mean?", "acceptedAnswer": {"@type": "Answer", "text": "The resolver checked the DNSSEC signatures for the answer and found them valid. Its absence means the domain is not signed or the resolver did not validate it."}}, {"@type": "Question", "name": "Why is there no ANY record type?", "acceptedAnswer": {"@type": "Answer", "text": "Major public resolvers no longer return full ANY responses (RFC 8482). Use the \"All common records\" button instead."}}, {"@type": "Question", "name": "Is DNS propagation checking possible here?", "acceptedAnswer": {"@type": "Answer", "text": "You can compare two global resolvers, which catches most cache-related delays. Full propagation checking across many regions requires probes in many locations, which a browser-based tool cannot provide."}}]}</script>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">/24</span>NetKit</a>
+<div class="header-actions"><button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">Theme</button></div>
+</div></header>
+<nav class="tabs" aria-label="Tools"><div class="wrap"><a class="tab" href="/what-is-my-ip/">My IP</a><a class="tab" href="/cidr-calculator/">CIDR Calculator</a><a class="tab" href="/dns-lookup/" aria-current="page">DNS Lookup</a><a class="tab" href="/bgp-asn-lookup/">BGP / ASN</a><a class="tab" href="/subnet-chart/">Subnet Chart</a><a class="tab" href="/port-numbers/">Port Numbers</a><a class="tab" href="/ip-converter/">IP Converter</a><a class="tab" href="/bandwidth-calculator/">Bandwidth Calc</a></div></nav>
+<script src="/assets/js/net.js?v=44da7539"></script>
+<script src="/assets/js/app.js?v=411fe5fd"></script>
+<main><div class="wrap"><div class="layout"><div class="content"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> &rsaquo; DNS Lookup</nav><h1>DNS Lookup</h1><p class="lead">Query any DNS record type through Cloudflare or Google public DNS, compare both resolvers side by side, or reverse-resolve an IP address.</p><div class="tool">
+  <form id="dns-form" class="row" autocomplete="off" novalidate>
+    <div class="field" style="flex:2 1 260px"><label for="dns-name">Domain or IP address</label>
+      <input id="dns-name" type="text" placeholder="example.com or 8.8.8.8" spellcheck="false" autocapitalize="off"></div>
+    <div class="field" style="flex:0 1 140px"><label for="dns-type">Record type</label>
+      <select id="dns-type">
+        <option>A</option><option>AAAA</option><option>MX</option><option>NS</option><option>TXT</option><option>CNAME</option>
+        <option>SOA</option><option>CAA</option><option>SRV</option><option>PTR</option><option>DS</option><option>DNSKEY</option><option>HTTPS</option>
+      </select></div>
+    <div class="field" style="flex:0 1 160px"><label for="dns-res">Resolver</label>
+      <select id="dns-res"><option value="cloudflare">Cloudflare 1.1.1.1</option><option value="google">Google 8.8.8.8</option></select></div>
+    <button class="btn" type="submit">Lookup</button>
+  </form>
+  <div class="row" style="margin-top:6px">
+    <label class="check"><input type="checkbox" id="dns-compare"> Compare Cloudflare and Google</label>
+    <button type="button" class="btn secondary" id="dns-all">All common records</button>
+  </div>
+  <div class="chips"><span class="muted">Try:</span>
+    <button type="button" class="chip" data-ex="example.com">example.com</button>
+    <button type="button" class="chip" data-ex="_dmarc.google.com" data-type="TXT">_dmarc.google.com TXT</button>
+    <button type="button" class="chip" data-ex="gmail.com" data-type="MX">gmail.com MX</button>
+    <button type="button" class="chip" data-ex="1.1.1.1">1.1.1.1 (reverse)</button>
+  </div>
+  <div class="out" id="dns-out" aria-live="polite"></div>
+</div>
+
+<script>
+(function () {
+  var TYPES = { 1: 'A', 2: 'NS', 5: 'CNAME', 6: 'SOA', 12: 'PTR', 15: 'MX', 16: 'TXT', 28: 'AAAA', 33: 'SRV', 43: 'DS', 46: 'RRSIG', 47: 'NSEC', 48: 'DNSKEY', 52: 'TLSA', 64: 'SVCB', 65: 'HTTPS', 257: 'CAA' };
+  var RCODES = ['NOERROR', 'FORMERR', 'SERVFAIL', 'NXDOMAIN', 'NOTIMP', 'REFUSED'];
+  var COMMON = ['A', 'AAAA', 'CNAME', 'MX', 'NS', 'TXT', 'SOA', 'CAA'];
+  var PNAME = { cloudflare: 'Cloudflare (1.1.1.1)', google: 'Google (8.8.8.8)' };
+  var form = NK.$('#dns-form'), nameEl = NK.$('#dns-name'), typeEl = NK.$('#dns-type'), resEl = NK.$('#dns-res'),
+      cmp = NK.$('#dns-compare'), out = NK.$('#dns-out');
+
+  function normalize(s) {
+    s = (s || '').trim();
+    if (!s) return null;
+    var v4 = NK.ipv4ToInt(s); if (v4 !== null) return { name: NK.ptrName4(v4), ptr: true };
+    var v6 = NK.parseIpv6(s); if (v6 !== null) return { name: NK.ptrName6(v6), ptr: true };
+    try { return { name: new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(s) ? s : 'http://' + s).hostname.replace(/\.$/, '') }; }
+    catch (e) { return null; }
+  }
+  function ttl(t) {
+    if (t >= 86400) return t + 's (' + Math.round(t / 86400 * 10) / 10 + 'd)';
+    if (t >= 3600) return t + 's (' + Math.round(t / 360) / 10 + 'h)';
+    if (t >= 60) return t + 's (' + Math.round(t / 6) / 10 + 'm)';
+    return t + 's';
+  }
+  function query(provider, name, type) {
+    return NK.doh(name, type, provider).then(function (j) { return { type: type, resp: j }; })
+      .catch(function (e) { return { type: type, error: e.message }; });
+  }
+
+  function renderProvider(provider, results, name) {
+    var rows = '', notes = [], flags = '', errs = [];
+    results.forEach(function (r) {
+      if (r.error) { errs.push(r.type + ': ' + r.error); return; }
+      var j = r.resp, answers = j.Answer || [];
+      if (j.AD) flags = '<span class="badge good" title="Authenticated Data: the resolver validated DNSSEC">DNSSEC validated</span> ';
+      if (j.Status !== 0) notes.push('<span class="badge ' + (j.Status === 3 ? 'warn' : 'bad') + '">' + NK.esc(r.type) + ': ' + NK.esc(RCODES[j.Status] || 'RCODE ' + j.Status) + '</span>');
+      else if (!answers.length) notes.push('<span class="badge">' + NK.esc(r.type) + ': no records</span>');
+      answers.forEach(function (a) {
+        rows += '<tr><td class="mono">' + NK.esc(a.name.replace(/\.$/, '')) + '</td><td><span class="badge info">' + NK.esc(TYPES[a.type] || a.type) + '</span></td><td class="mono">' + ttl(a.TTL) + '</td><td class="mono copyable">' + NK.esc(a.data) + '</td></tr>';
+      });
+    });
+    var h = '<div class="box"><h3>' + NK.esc(PNAME[provider]) + '</h3><p style="margin:0 0 8px">' + flags + notes.join(' ') + '</p>';
+    if (errs.length) h += '<div class="alert err">' + errs.map(NK.esc).join('<br>') + '</div>';
+    h += rows ? '<div class="table-wrap"><table class="data"><thead><tr><th>Name</th><th>Type</th><th>TTL</th><th>Data</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : (errs.length ? '' : '<p class="muted" style="margin:0">No records returned.</p>');
+    return h + '</div>';
+  }
+
+  function run(all) {
+    var n = normalize(nameEl.value);
+    if (!n) { out.innerHTML = '<div class="alert err">Enter a domain name or an IP address.</div>'; return; }
+    var type = n.ptr ? 'PTR' : typeEl.value;
+    if (n.ptr) typeEl.value = 'PTR';
+    var types = all && !n.ptr ? COMMON : [type];
+    var providers = cmp.checked ? ['cloudflare', 'google'] : [resEl.value];
+    NK.setParams({ q: nameEl.value.trim(), type: all ? 'ALL' : type });
+    out.innerHTML = '<p><span class="spin"></span>Querying ' + providers.length + ' resolver' + (providers.length > 1 ? 's' : '') + '…</p>';
+    Promise.all(providers.map(function (p) {
+      return Promise.all(types.map(function (t) { return query(p, n.name, t); })).then(function (res) { return renderProvider(p, res, n.name); });
+    })).then(function (blocks) {
+      var head = '<p class="muted">Query: <span class="mono">' + NK.esc(n.name) + '</span>' + (n.ptr ? ' (reverse lookup)' : '') + ' · ' + types.join(', ') + '</p>';
+      out.innerHTML = head + '<div class="' + (blocks.length > 1 ? 'cols2' : '') + '">' + blocks.join('') + '</div>';
+    });
+  }
+
+  form.addEventListener('submit', function (e) { e.preventDefault(); run(false); });
+  NK.$('#dns-all').addEventListener('click', function () { run(true); });
+  NK.$$('.chip[data-ex]').forEach(function (b) {
+    b.addEventListener('click', function () { nameEl.value = b.getAttribute('data-ex'); typeEl.value = b.getAttribute('data-type') || 'A'; run(false); });
+  });
+  var q = NK.getParam('q'), t = NK.getParam('type');
+  if (q) { nameEl.value = q; if (t && t !== 'ALL') typeEl.value = t; run(t === 'ALL'); }
+})();
+</script><section class="article"><h2>How this DNS lookup works</h2>
+<p>Your browser sends the query directly to a public resolver using <strong>DNS over HTTPS (DoH)</strong>, so the request is encrypted and no DNS server of ours is involved. You can choose Cloudflare (1.1.1.1) or Google (8.8.8.8), or compare both. Differences between them can point to caching, a recent change that has not propagated, or split-horizon DNS.</p>
+
+<h2>Common record types</h2>
+<ul>
+<li><strong>A / AAAA</strong>: the IPv4 and IPv6 addresses for a name.</li>
+<li><strong>CNAME</strong>: an alias that points one name at another.</li>
+<li><strong>MX</strong>: mail servers for the domain, with a priority (lower is preferred).</li>
+<li><strong>NS</strong>: the authoritative name servers for the zone.</li>
+<li><strong>TXT</strong>: free-form text used for SPF, DKIM, DMARC and domain verification.</li>
+<li><strong>SOA</strong>: zone metadata such as the primary server, serial number and refresh timers.</li>
+<li><strong>CAA</strong>: which certificate authorities may issue certificates for the domain.</li>
+<li><strong>PTR</strong>: reverse DNS, mapping an IP address back to a name.</li>
+</ul>
+
+<h2>Reverse DNS lookups</h2>
+<p>Type an IPv4 or IPv6 address and the tool converts it to the right <code>in-addr.arpa</code> or <code>ip6.arpa</code> name and asks for the PTR record. Mail servers and many security tools check that a sending IP has a matching PTR record.</p>
+
+<h2>Checking email authentication records</h2>
+<p>Look up the <strong>TXT</strong> record on the domain for SPF (<code>v=spf1 …</code>), on <code>_dmarc.example.com</code> for DMARC and on <code>selector._domainkey.example.com</code> for DKIM. Use the "All common records" button to see most of a domain's configuration at once.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>Why do the two resolvers show different results?</summary><p>Each resolver caches answers for the record's TTL. After a change, one resolver may still serve the old value until its cache expires. Wait for the TTL shown in the results, then query again.</p></details>
+<details><summary>What does NXDOMAIN mean?</summary><p>The name does not exist. Check the spelling, or confirm the record has been created in the authoritative zone.</p></details>
+<details><summary>What does the DNSSEC validated badge mean?</summary><p>The resolver checked the DNSSEC signatures for the answer and found them valid. Its absence means the domain is not signed or the resolver did not validate it.</p></details>
+<details><summary>Why is there no ANY record type?</summary><p>Major public resolvers no longer return full ANY responses (RFC 8482). Use the "All common records" button instead.</p></details>
+<details><summary>Is DNS propagation checking possible here?</summary><p>You can compare two global resolvers, which catches most cache-related delays. Full propagation checking across many regions requires probes in many locations, which a browser-based tool cannot provide.</p></details><p class="muted" style="margin-top:22px">Last reviewed November 15, 2026.</p></section><section class="related"><h2>Related tools</h2><div class="cards"><a class="card" href="/what-is-my-ip/"><span class="glyph">IP</span><h3>My IP</h3><p>Your public IPv4 and IPv6, ISP, ASN and location. Look up any IP.</p></a><a class="card" href="/bgp-asn-lookup/"><span class="glyph">AS</span><h3>BGP / ASN</h3><p>ASN holder, announced prefixes, neighbours and RPKI status from RIPEstat.</p></a><a class="card" href="/ip-converter/"><span class="glyph">0x</span><h3>IP Converter</h3><p>IPv4 to decimal, hex, binary and octal. IPv6 expand, compress and PTR names.</p></a></div></section></div></div></div></main>
+<footer class="site-footer"><div class="wrap">
+<div class="cols">
+<div><h4>NetKit</h4><p>Free online tools for network engineers. Calculators run in your browser; lookups use public APIs.</p></div>
+<div><h4>Tools</h4><ul><li><a href="/what-is-my-ip/">My IP</a></li><li><a href="/cidr-calculator/">CIDR Calculator</a></li><li><a href="/dns-lookup/">DNS Lookup</a></li><li><a href="/bgp-asn-lookup/">BGP / ASN</a></li><li><a href="/subnet-chart/">Subnet Chart</a></li><li><a href="/port-numbers/">Port Numbers</a></li><li><a href="/ip-converter/">IP Converter</a></li><li><a href="/bandwidth-calculator/">Bandwidth Calc</a></li></ul></div>
+<div><h4>Company</h4><ul><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+</div>
+<p class="fine">&copy; 2026 NetKit. Results are provided for information only; verify before using them in production changes.</p>
+</div></footer>
+</body>
+</html>

@@ -1,0 +1,54 @@
+---
+slug: subnet-chart
+order: 5
+title: Subnet Mask Cheat Sheet – CIDR Chart for /0 to /32
+description: Complete IPv4 subnet mask chart with CIDR prefix, netmask, wildcard mask, total addresses and usable hosts for /0 to /32, plus a typical IPv6 prefix table.
+h1: Subnet Mask Cheat Sheet
+nav: Subnet Chart
+lead: Every IPv4 prefix from /0 to /32 with its subnet mask, wildcard mask and host count, plus the common IPv6 prefix sizes.
+glyph: /n
+card: Searchable CIDR, netmask and wildcard chart for /0 to /32, plus IPv6 sizes.
+related: cidr-calculator, ip-converter, port-numbers
+keywords: subnet mask chart cidr cheat sheet wildcard hosts table vlsm
+---
+<div class="tool">
+  <div class="row">
+    <div class="field" style="max-width:420px"><label for="chart-q">Filter the chart</label>
+      <input id="chart-q" type="text" placeholder="e.g. /27, 255.255.255.224, point-to-point" spellcheck="false" autocomplete="off"></div>
+    <span class="muted" id="chart-count" style="padding-bottom:12px"></span>
+  </div>
+  <div style="margin-top:12px">{{SUBNET_TABLE}}</div>
+  <p class="muted" style="margin-bottom:0">Click a prefix for its own reference page, or click a mask to copy it.</p>
+</div>
+<script>NK.filterRows(NK.$('#chart-q'), '#subnet-table tbody tr', NK.$('#chart-count'));</script>
+<!--ARTICLE-->
+<h2>How to read the chart</h2>
+<p>The <strong>prefix</strong> is the number of network bits. The <strong>subnet mask</strong> writes those bits as four decimal octets, and the <strong>wildcard mask</strong> is its inverse, which Cisco ACLs and OSPF <code>network</code> statements use. <strong>Usable hosts</strong> excludes the network and broadcast addresses, except for /31 (two usable addresses on a point-to-point link) and /32 (one host).</p>
+
+<h2>Quick subnetting method</h2>
+<ol>
+<li>Find the interesting octet: the one where the mask is neither 255 nor 0.</li>
+<li>Compute the <strong>block size</strong>: 256 minus the mask value in that octet. For <code>255.255.255.224</code> it is 256 − 224 = 32.</li>
+<li>Subnets start at multiples of the block size: .0, .32, .64, .96 and so on.</li>
+<li>The broadcast address is one less than the next subnet; usable hosts lie between.</li>
+</ol>
+
+<h2>Choosing a subnet size</h2>
+<ul>
+<li><strong>/30 or /31</strong>: router-to-router links. Prefer /31 where your platforms support RFC 3021.</li>
+<li><strong>/29 to /28</strong>: small DMZs, management networks, internet hand-offs.</li>
+<li><strong>/27 to /25</strong>: server, voice, wireless or guest VLANs.</li>
+<li><strong>/24</strong>: the default access VLAN size for many campuses.</li>
+<li><strong>/23 to /16</strong>: large VLANs, site or data-centre aggregates. Very large broadcast domains hurt performance, so subdivide.</li>
+<li><strong>/32</strong>: loopbacks, router IDs and host routes.</li>
+</ul>
+
+<h2>Common IPv6 prefix sizes</h2>
+<p>IPv6 planning is simpler: nearly every LAN is a /64. The table shows the sizes you meet most often.</p>
+{{IPV6_TABLE}}
+
+<h2>Frequently asked questions</h2>
+<details><summary>What subnet mask is /24?</summary><p>255.255.255.0, with a wildcard mask of 0.0.0.255 and 254 usable hosts.</p></details>
+<details><summary>What is the difference between /30 and /31?</summary><p>A /30 has four addresses with two usable. A /31 has two addresses and, under RFC 3021, both are usable on point-to-point links, saving half the address space per link.</p></details>
+<details><summary>Why are usable hosts two fewer than total addresses?</summary><p>The first address identifies the subnet itself (network address) and the last is the directed broadcast address, so neither can be assigned to a host.</p></details>
+<details><summary>How do I convert a mask to a prefix length?</summary><p>Count the 1 bits. <code>255.255.255.192</code> is eight, eight, eight and two 1 bits, so it is /26.</p></details>

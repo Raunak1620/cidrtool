@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What Is My IP Address? Public IPv4 and IPv6 Lookup | NetKit</title>
+<meta name="description" content="See your public IPv4 and IPv6 address, ISP, ASN, approximate location and reverse DNS. Also look up any other IP address. Free and instant.">
+<link rel="canonical" href="https://yourdomain.com/what-is-my-ip/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NetKit">
+<meta property="og:title" content="What Is My IP Address? Public IPv4 and IPv6 Lookup | NetKit">
+<meta property="og:description" content="See your public IPv4 and IPv6 address, ISP, ASN, approximate location and reverse DNS. Also look up any other IP address. Free and instant.">
+<meta property="og:url" content="https://yourdomain.com/what-is-my-ip/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0b6bde">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem('nk-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="stylesheet" href="/assets/css/style.css?v=f6190cd9">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "What Is My IP Address?", "url": "https://yourdomain.com/what-is-my-ip/", "applicationCategory": "DeveloperApplication", "operatingSystem": "Any", "browserRequirements": "Requires JavaScript", "description": "See your public IPv4 and IPv6 address, ISP, ASN, approximate location and reverse DNS. Also look up any other IP address. Free and instant.", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://yourdomain.com/"}, {"@type": "ListItem", "position": 2, "name": "My IP", "item": "https://yourdomain.com/what-is-my-ip/"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Why is my IP address different from the one in my network settings?", "acceptedAnswer": {"@type": "Answer", "text": "Your device settings show a private address assigned by your router. The address on this page is the public address your router or your ISP presents to the internet."}}, {"@type": "Question", "name": "Does my IP address change?", "acceptedAnswer": {"@type": "Answer", "text": "Most residential connections use dynamic addresses that can change when your router restarts or your lease expires. Business connections often have static addresses. Mobile networks change addresses frequently."}}, {"@type": "Question", "name": "Why does my IP show a different city or country?", "acceptedAnswer": {"@type": "Answer", "text": "Geolocation databases map address ranges to where the provider registered or routes them. A VPN, a mobile carrier, a corporate proxy or an out-of-date database entry can all produce a location that differs from where you are."}}, {"@type": "Question", "name": "Can I hide my IP address?", "acceptedAnswer": {"@type": "Answer", "text": "You can mask it by using a VPN, a proxy or a service such as Tor. Websites then see the address of that service instead of your own. Your ISP still sees that you are connected to it."}}, {"@type": "Question", "name": "What data does this page send?", "acceptedAnswer": {"@type": "Answer", "text": "Your browser requests your address from a public IP detection service and, for the location details, from an IP geolocation service. See the privacy policy for details."}}]}</script>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">/24</span>NetKit</a>
+<div class="header-actions"><button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">Theme</button></div>
+</div></header>
+<nav class="tabs" aria-label="Tools"><div class="wrap"><a class="tab" href="/what-is-my-ip/" aria-current="page">My IP</a><a class="tab" href="/cidr-calculator/">CIDR Calculator</a><a class="tab" href="/dns-lookup/">DNS Lookup</a><a class="tab" href="/bgp-asn-lookup/">BGP / ASN</a><a class="tab" href="/subnet-chart/">Subnet Chart</a><a class="tab" href="/port-numbers/">Port Numbers</a><a class="tab" href="/ip-converter/">IP Converter</a><a class="tab" href="/bandwidth-calculator/">Bandwidth Calc</a></div></nav>
+<script src="/assets/js/net.js?v=44da7539"></script>
+<script src="/assets/js/app.js?v=411fe5fd"></script>
+<main><div class="wrap"><div class="layout"><div class="content"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> &rsaquo; My IP</nav><h1>What Is My IP Address?</h1><p class="lead">Your public IP address, ISP, ASN and approximate location, plus a lookup for any other IP address.</p><div class="tool">
+  <div class="hero-ip">
+    <div class="label">Your public IP address</div>
+    <div class="big mono copyable" id="ip-main"><span class="spin"></span>Detecting…</div>
+    <div class="muted" id="ip-sub">Click the address to copy it.</div>
+  </div>
+  <div class="grid two">
+    <div class="box"><div class="label">IPv4</div><div class="mono copyable" id="ip-v4">…</div></div>
+    <div class="box"><div class="label">IPv6</div><div class="mono copyable" id="ip-v6" style="word-break:break-all">…</div></div>
+  </div>
+  <div class="alert err" id="ip-err" hidden></div>
+  <dl class="kv out" id="ip-details" style="margin-top:14px"></dl>
+</div>
+
+<div class="tool" style="margin-top:16px">
+  <h2 class="sub" style="margin-top:0">Look up another IP address</h2>
+  <form class="inline-form" id="ip-form" novalidate>
+    <input type="text" id="ip-q" placeholder="8.8.8.8 or 2606:4700:4700::1111" aria-label="IP address to look up" spellcheck="false" autocomplete="off" autocapitalize="off">
+    <button class="btn" type="submit">Look up</button>
+  </form>
+  <div class="out" id="ip-other" aria-live="polite"></div>
+</div>
+
+<script>
+(function () {
+  var main = NK.$('#ip-main'), sub = NK.$('#ip-sub'), v4el = NK.$('#ip-v4'), v6el = NK.$('#ip-v6'),
+      err = NK.$('#ip-err'), det = NK.$('#ip-details'), other = NK.$('#ip-other');
+
+  function row(k, v) { return '<div><dt>' + NK.esc(k) + '</dt><dd class="mono copyable">' + NK.esc(v) + '</dd></div>'; }
+  function rowH(k, h) { return '<div><dt>' + NK.esc(k) + '</dt><dd>' + h + '</dd></div>'; }
+
+  /* normalise two providers into one shape */
+  function geo(ip) {
+    return NK.fetchJson('https://ipwho.is/' + encodeURIComponent(ip)).then(function (d) {
+      if (d && d.success === false) throw new Error(d.message || 'Lookup failed');
+      var c = d.connection || {}, tz = d.timezone || {};
+      return { city: d.city, region: d.region, country: d.country, postal: d.postal, lat: d.latitude, lon: d.longitude,
+               tz: tz.id, asn: c.asn, org: c.org, isp: c.isp, domain: c.domain };
+    }).catch(function () {
+      return NK.fetchJson('https://ipapi.co/' + encodeURIComponent(ip) + '/json/').then(function (d) {
+        if (d && d.error) throw new Error(d.reason || 'Lookup failed');
+        return { city: d.city, region: d.region, country: d.country_name, postal: d.postal, lat: d.latitude, lon: d.longitude,
+                 tz: d.timezone, asn: d.asn ? String(d.asn).replace(/^AS/i, '') : '', org: d.org, isp: d.org };
+      });
+    });
+  }
+  function rdns(ip) {
+    var n = NK.ipv4ToInt(ip), name = n !== null ? NK.ptrName4(n) : NK.ptrName6(NK.parseIpv6(ip));
+    return NK.doh(name, 'PTR').then(function (j) {
+      var a = (j.Answer || []).filter(function (x) { return x.type === 12; });
+      return a.length ? a.map(function (x) { return x.data.replace(/\.$/, ''); }).join(', ') : 'No PTR record';
+    }).catch(function () { return 'Unavailable'; });
+  }
+  function details(ip) {
+    var isV4 = ip.indexOf(':') < 0;
+    return Promise.all([geo(ip).catch(function (e) { return { error: e.message }; }), rdns(ip)]).then(function (r) {
+      var g = r[0], h = row('IP address', ip) + row('Type', isV4 ? 'IPv4' : 'IPv6') + row('Reverse DNS (PTR)', r[1]);
+      if (g.error) return h + rowH('Location data', '<span class="muted">Not available: ' + NK.esc(g.error) + '</span>');
+      var place = [g.city, g.region, g.country].filter(Boolean).join(', ');
+      if (g.isp || g.org) h += row('ISP / organisation', g.isp || g.org);
+      if (g.asn) h += rowH('ASN', '<a class="mono" href="/bgp-asn-lookup/?q=AS' + encodeURIComponent(String(g.asn).replace(/^AS/i, '')) +
+                           '">AS' + NK.esc(String(g.asn).replace(/^AS/i, '')) + '</a>');
+      if (g.domain) h += row('Network domain', g.domain);
+      if (place) h += row('Approximate location', place);
+      if (g.postal) h += row('Postal code', g.postal);
+      if (g.tz) h += row('Time zone', g.tz);
+      if (g.lat != null && g.lon != null) h += row('Coordinates', g.lat + ', ' + g.lon);
+      return h;
+    });
+  }
+
+  /* 1. detect the visitor's own IP */
+  var p4 = NK.fetchJson('https://api.ipify.org?format=json').then(function (j) { return j.ip; }).catch(function () { return null; });
+  var p6 = NK.fetchJson('https://api64.ipify.org?format=json').then(function (j) { return j.ip; }).catch(function () { return null; });
+  Promise.all([p4, p6]).then(function (r) {
+    var ip4 = r[0] && r[0].indexOf(':') < 0 ? r[0] : null, ip6 = r[1] && r[1].indexOf(':') >= 0 ? r[1] : null;
+    var primary = ip4 || ip6;
+    v4el.textContent = ip4 || 'Not detected';
+    v6el.textContent = ip6 || 'Not detected (your connection may be IPv4-only)';
+    if (!primary) {
+      main.textContent = 'Unavailable';
+      err.hidden = false;
+      err.textContent = 'Could not detect your IP. A browser extension, VPN, firewall or ad blocker may be blocking the lookup request.';
+      return;
+    }
+    main.textContent = primary;
+    sub.textContent = ip4 && ip6 ? 'Dual-stack connection: both IPv4 and IPv6 are active.' : ip6 ? 'IPv6-only connection.' : 'IPv4 connection. Click the address to copy it.';
+    return details(primary).then(function (h) {
+      var tz = ''; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) { /* ignore */ }
+      h += row('Browser', navigator.userAgent) + row('Browser language', navigator.language || '') + (tz ? row('Browser time zone', tz) : '');
+      det.innerHTML = h;
+    });
+  });
+
+  /* 2. look up any IP */
+  function run(q) {
+    q = q.trim();
+    if (!q) return;
+    var isV4 = NK.ipv4ToInt(q) !== null, isV6 = !isV4 && NK.parseIpv6(q) !== null;
+    if (!isV4 && !isV6) { other.innerHTML = '<div class="alert err">That is not a valid IPv4 or IPv6 address.</div>'; return; }
+    NK.setParams({ q: q });
+    if (isV4) {
+      var kind = NK.ipv4Kind(NK.ipv4ToInt(q), 32);
+      if (kind.label.indexOf('Public') !== 0) {
+        other.innerHTML = '<div class="alert note"><strong>' + NK.esc(q) + '</strong> is a non-public address: ' + NK.esc(kind.label) +
+          (kind.rfc ? ' (' + NK.esc(kind.rfc) + ')' : '') + '. It has no public location or ISP data.</div>';
+        return;
+      }
+    } else if (NK.ipv6Kind(NK.parseIpv6(q)) !== 'Global unicast') {
+      other.innerHTML = '<div class="alert note"><strong>' + NK.esc(q) + '</strong> is not a global unicast address (' + NK.esc(NK.ipv6Kind(NK.parseIpv6(q))) + '), so it has no public location data.</div>';
+      return;
+    }
+    other.innerHTML = '<p><span class="spin"></span>Looking up…</p>';
+    details(isV4 ? q : NK.formatIpv6(NK.parseIpv6(q))).then(function (h) { other.innerHTML = '<dl class="kv">' + h + '</dl>'; })
+      .catch(function (e) { other.innerHTML = '<div class="alert err">' + NK.esc(e.message) + '</div>'; });
+  }
+  NK.$('#ip-form').addEventListener('submit', function (e) { e.preventDefault(); run(NK.$('#ip-q').value); });
+  var pre = NK.getParam('q'); if (pre) { NK.$('#ip-q').value = pre; run(pre); }
+})();
+</script><section class="article"><h2>What is a public IP address?</h2>
+<p>Every device on the internet is reachable through an IP address. The address shown above is your <strong>public IP</strong>: the one websites and servers see when you connect. Inside your home or office your devices usually have <em>private</em> addresses such as <code>192.168.1.20</code> or <code>10.0.0.5</code>; your router translates them to a single public address using NAT. That is why every device on the same network shows the same public IP.</p>
+
+<h2>IPv4 versus IPv6</h2>
+<p>IPv4 addresses are four numbers separated by dots (<code>203.0.113.9</code>) and there are only about 4.3 billion of them. IPv6 addresses are 128 bits written in hexadecimal (<code>2001:db8::1</code>), which gives a practically unlimited supply. Many networks are dual-stack and have both. If the IPv6 box above says "Not detected", your provider or network probably does not offer IPv6 yet.</p>
+
+<h2>How accurate is the location?</h2>
+<p>IP geolocation is approximate. It is built from registry data, routing information and measurement, and usually identifies the country and often the city of your <em>provider's</em> network, not your street address. Mobile networks, VPNs, corporate proxies and carrier-grade NAT frequently place users in a different city or even a different country.</p>
+
+<h2>What do ISP and ASN mean?</h2>
+<p>Your <strong>ISP</strong> is the company that provides your connection. The <strong>ASN</strong> (Autonomous System Number) identifies the network that announces your IP range on the internet through BGP. Click the ASN above to see its prefixes, neighbours and RPKI status in our <a href="/bgp-asn-lookup/">BGP and ASN lookup</a>.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>Why is my IP address different from the one in my network settings?</summary><p>Your device settings show a private address assigned by your router. The address on this page is the public address your router or your ISP presents to the internet.</p></details>
+<details><summary>Does my IP address change?</summary><p>Most residential connections use dynamic addresses that can change when your router restarts or your lease expires. Business connections often have static addresses. Mobile networks change addresses frequently.</p></details>
+<details><summary>Why does my IP show a different city or country?</summary><p>Geolocation databases map address ranges to where the provider registered or routes them. A VPN, a mobile carrier, a corporate proxy or an out-of-date database entry can all produce a location that differs from where you are.</p></details>
+<details><summary>Can I hide my IP address?</summary><p>You can mask it by using a VPN, a proxy or a service such as Tor. Websites then see the address of that service instead of your own. Your ISP still sees that you are connected to it.</p></details>
+<details><summary>What data does this page send?</summary><p>Your browser requests your address from a public IP detection service and, for the location details, from an IP geolocation service. See the <a href="/privacy/">privacy policy</a> for details.</p></details><p class="muted" style="margin-top:22px">Last reviewed November 15, 2026.</p></section><section class="related"><h2>Related tools</h2><div class="cards"><a class="card" href="/dns-lookup/"><span class="glyph">DNS</span><h3>DNS Lookup</h3><p>A, AAAA, MX, TXT, NS, CAA and more. Compare resolvers and reverse lookups.</p></a><a class="card" href="/bgp-asn-lookup/"><span class="glyph">AS</span><h3>BGP / ASN</h3><p>ASN holder, announced prefixes, neighbours and RPKI status from RIPEstat.</p></a><a class="card" href="/ip-converter/"><span class="glyph">0x</span><h3>IP Converter</h3><p>IPv4 to decimal, hex, binary and octal. IPv6 expand, compress and PTR names.</p></a></div></section></div></div></div></main>
+<footer class="site-footer"><div class="wrap">
+<div class="cols">
+<div><h4>NetKit</h4><p>Free online tools for network engineers. Calculators run in your browser; lookups use public APIs.</p></div>
+<div><h4>Tools</h4><ul><li><a href="/what-is-my-ip/">My IP</a></li><li><a href="/cidr-calculator/">CIDR Calculator</a></li><li><a href="/dns-lookup/">DNS Lookup</a></li><li><a href="/bgp-asn-lookup/">BGP / ASN</a></li><li><a href="/subnet-chart/">Subnet Chart</a></li><li><a href="/port-numbers/">Port Numbers</a></li><li><a href="/ip-converter/">IP Converter</a></li><li><a href="/bandwidth-calculator/">Bandwidth Calc</a></li></ul></div>
+<div><h4>Company</h4><ul><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+</div>
+<p class="fine">&copy; 2026 NetKit. Results are provided for information only; verify before using them in production changes.</p>
+</div></footer>
+</body>
+</html>

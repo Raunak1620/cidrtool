@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About | NetKit</title>
+<meta name="description" content="About {{SITE}}, a free collection of online tools for network engineers, and how the tools get their data.">
+<link rel="canonical" href="https://yourdomain.com/about/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NetKit">
+<meta property="og:title" content="About | NetKit">
+<meta property="og:description" content="About {{SITE}}, a free collection of online tools for network engineers, and how the tools get their data.">
+<meta property="og:url" content="https://yourdomain.com/about/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0b6bde">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem('nk-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="stylesheet" href="/assets/css/style.css?v=f6190cd9">
+
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">/24</span>NetKit</a>
+<div class="header-actions"><button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">Theme</button></div>
+</div></header>
+<nav class="tabs" aria-label="Tools"><div class="wrap"><a class="tab" href="/what-is-my-ip/">My IP</a><a class="tab" href="/cidr-calculator/">CIDR Calculator</a><a class="tab" href="/dns-lookup/">DNS Lookup</a><a class="tab" href="/bgp-asn-lookup/">BGP / ASN</a><a class="tab" href="/subnet-chart/">Subnet Chart</a><a class="tab" href="/port-numbers/">Port Numbers</a><a class="tab" href="/ip-converter/">IP Converter</a><a class="tab" href="/bandwidth-calculator/">Bandwidth Calc</a></div></nav>
+<script src="/assets/js/net.js?v=44da7539"></script>
+<script src="/assets/js/app.js?v=411fe5fd"></script>
+<main><div class="wrap"><div class="layout"><div class="content"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> &rsaquo; About {{SITE}}</nav><h1>About {{SITE}}</h1><p class="lead">Free, fast tools for people who build and run networks.</p><section class="article"><h2>What this site is</h2>
+<p>NetKit is a set of free online utilities for network engineers, systems administrators and students: an IP address lookup, a CIDR and subnet calculator, a DNS lookup, a BGP and ASN lookup, a port number reference, an IP address converter and a bandwidth calculator.</p>
+<h2>How the tools get their data</h2>
+<ul>
+<li><strong>Calculators</strong> (CIDR, subnet chart, IP converter, bandwidth) are computed in your browser with JavaScript.</li>
+<li><strong>DNS lookups</strong> use the public DNS-over-HTTPS services of Cloudflare and Google.</li>
+<li><strong>BGP and ASN data</strong> comes from the public RIPEstat data API, built from RIPE RIS route collectors.</li>
+<li><strong>IP geolocation</strong> comes from third-party IP intelligence services and is approximate.</li>
+<li><strong>Reference tables</strong> (ports, protocols, special-use address ranges) are compiled from IANA registries and the relevant RFCs.</li>
+</ul>
+<h2>Accuracy</h2>
+<p>We test the calculation logic and try to keep reference data correct, but no tool is perfect. Always verify results before applying them to production networks. If you find an error, please <a href="/contact/">tell us</a> and we will fix it.</p>
+<h2>How the site is funded</h2>
+<p>The site is supported by advertising, which keeps every tool free. Ads are kept away from the tool controls and results.</p></section></div></div></div></main>
+<footer class="site-footer"><div class="wrap">
+<div class="cols">
+<div><h4>NetKit</h4><p>Free online tools for network engineers. Calculators run in your browser; lookups use public APIs.</p></div>
+<div><h4>Tools</h4><ul><li><a href="/what-is-my-ip/">My IP</a></li><li><a href="/cidr-calculator/">CIDR Calculator</a></li><li><a href="/dns-lookup/">DNS Lookup</a></li><li><a href="/bgp-asn-lookup/">BGP / ASN</a></li><li><a href="/subnet-chart/">Subnet Chart</a></li><li><a href="/port-numbers/">Port Numbers</a></li><li><a href="/ip-converter/">IP Converter</a></li><li><a href="/bandwidth-calculator/">Bandwidth Calc</a></li></ul></div>
+<div><h4>Company</h4><ul><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+</div>
+<p class="fine">&copy; 2026 NetKit. Results are provided for information only; verify before using them in production changes.</p>
+</div></footer>
+</body>
+</html>

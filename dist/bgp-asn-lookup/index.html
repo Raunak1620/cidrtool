@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BGP and ASN Lookup – Prefixes, Neighbours and RPKI Status | NetKit</title>
+<meta name="description" content="Free BGP looking glass for ASNs, IPs and prefixes. See the holder, announced prefixes, AS neighbours and RPKI validation using live RIPEstat routing data.">
+<link rel="canonical" href="https://yourdomain.com/bgp-asn-lookup/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NetKit">
+<meta property="og:title" content="BGP and ASN Lookup – Prefixes, Neighbours and RPKI Status | NetKit">
+<meta property="og:description" content="Free BGP looking glass for ASNs, IPs and prefixes. See the holder, announced prefixes, AS neighbours and RPKI validation using live RIPEstat routing data.">
+<meta property="og:url" content="https://yourdomain.com/bgp-asn-lookup/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0b6bde">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem('nk-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="stylesheet" href="/assets/css/style.css?v=f6190cd9">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "BGP and ASN Lookup", "url": "https://yourdomain.com/bgp-asn-lookup/", "applicationCategory": "DeveloperApplication", "operatingSystem": "Any", "browserRequirements": "Requires JavaScript", "description": "Free BGP looking glass for ASNs, IPs and prefixes. See the holder, announced prefixes, AS neighbours and RPKI validation using live RIPEstat routing data.", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://yourdomain.com/"}, {"@type": "ListItem", "position": 2, "name": "BGP / ASN", "item": "https://yourdomain.com/bgp-asn-lookup/"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is an ASN?", "acceptedAnswer": {"@type": "Answer", "text": "An Autonomous System Number identifies a network under a single routing policy, such as an ISP, a cloud provider or a large enterprise. ASNs are assigned by regional registries like RIPE NCC, ARIN and APNIC."}}, {"@type": "Question", "name": "Why does an AS show as not originating prefixes?", "acceptedAnswer": {"@type": "Answer", "text": "Some ASNs only provide transit, carrying traffic for others, and do not originate prefixes of their own. Others originate prefixes that too few route collectors see to count as globally visible."}}, {"@type": "Question", "name": "Why might a prefix show as not announced?", "acceptedAnswer": {"@type": "Answer", "text": "It may be unused, announced only within a private network, filtered by most upstreams, or announced as part of a larger covering prefix."}}, {"@type": "Question", "name": "Where does the data come from?", "acceptedAnswer": {"@type": "Answer", "text": "All data is fetched live from RIPEstat by your browser. It reflects what RIPE's route collectors currently see and can differ slightly from other looking glasses."}}, {"@type": "Question", "name": "Can I use this to troubleshoot an outage?", "acceptedAnswer": {"@type": "Answer", "text": "It is a quick first check: confirm a prefix is still announced, see which ASN originates it and whether RPKI validates. For real-time path analysis use your provider's looking glass or a collector with live updates."}}]}</script>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">/24</span>NetKit</a>
+<div class="header-actions"><button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">Theme</button></div>
+</div></header>
+<nav class="tabs" aria-label="Tools"><div class="wrap"><a class="tab" href="/what-is-my-ip/">My IP</a><a class="tab" href="/cidr-calculator/">CIDR Calculator</a><a class="tab" href="/dns-lookup/">DNS Lookup</a><a class="tab" href="/bgp-asn-lookup/" aria-current="page">BGP / ASN</a><a class="tab" href="/subnet-chart/">Subnet Chart</a><a class="tab" href="/port-numbers/">Port Numbers</a><a class="tab" href="/ip-converter/">IP Converter</a><a class="tab" href="/bandwidth-calculator/">Bandwidth Calc</a></div></nav>
+<script src="/assets/js/net.js?v=44da7539"></script>
+<script src="/assets/js/app.js?v=411fe5fd"></script>
+<main><div class="wrap"><div class="layout"><div class="content"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> &rsaquo; BGP / ASN</nav><h1>BGP and ASN Lookup</h1><p class="lead">Enter an ASN, IP address or prefix to see who originates it, which prefixes an AS announces, its neighbours in AS paths, and RPKI origin validation.</p><div class="tool">
+  <form id="bgp-form" class="inline-form" autocomplete="off" novalidate>
+    <label class="sr-only" for="bgp-in">ASN, IP address or prefix</label>
+    <input id="bgp-in" type="text" placeholder="AS13335 · 1.1.1.0/24 · 8.8.8.8 · 2606:4700::/32" spellcheck="false" autocapitalize="off">
+    <button class="btn" type="submit">Look up</button>
+  </form>
+  <div class="chips"><span class="muted">Try:</span>
+    <button type="button" class="chip" data-ex="AS13335">AS13335</button>
+    <button type="button" class="chip" data-ex="AS15169">AS15169</button>
+    <button type="button" class="chip" data-ex="1.1.1.0/24">1.1.1.0/24</button>
+    <button type="button" class="chip" data-ex="8.8.8.8">8.8.8.8</button>
+  </div>
+  <div class="out" id="bgp-out" aria-live="polite"></div>
+</div>
+
+<script>
+(function () {
+  var API = 'https://stat.ripe.net/data/';
+  var inp = NK.$('#bgp-in'), out = NK.$('#bgp-out');
+
+  function ripe(endpoint, resource, extra) {
+    var u = API + endpoint + '/data.json?resource=' + encodeURIComponent(resource) + '&sourceapp=netkit' + (extra || '');
+    return NK.fetchJson(u, {}, 20000).then(function (j) {
+      if (j && j.status && j.status !== 'ok') throw new Error((j.messages && j.messages[0] && j.messages[0][1]) || 'RIPEstat error');
+      return (j && j.data) || {};
+    });
+  }
+  function safe(p) { return p.then(function (d) { return { d: d }; }, function (e) { return { err: e.message }; }); }
+  function row(k, v) { return '<div><dt>' + NK.esc(k) + '</dt><dd class="mono">' + v + '</dd></div>'; }
+  function asLink(asn) { return '<a href="?q=AS' + NK.esc(asn) + '" data-q="AS' + NK.esc(asn) + '">AS' + NK.esc(asn) + '</a>'; }
+  function raw(label, obj) { return '<details class="raw"><summary>' + NK.esc(label) + '</summary><pre class="code">' + NK.esc(JSON.stringify(obj, null, 2)) + '</pre></details>'; }
+  function ext(links) { return '<p class="muted" style="margin-top:14px">Open in: ' + links.map(function (l) { return '<a href="' + l[1] + '" target="_blank" rel="noopener noreferrer">' + l[0] + '</a>'; }).join(' · ') + '</p>'; }
+  function err(m) { return '<div class="alert err">' + NK.esc(m) + '</div>'; }
+
+  function classify(s) {
+    s = s.trim();
+    var m = /^(?:AS)?(\d{1,10})$/i.exec(s);
+    if (m) return { type: 'asn', asn: m[1] };
+    var spec = NK.parseSpec(s);
+    if (!spec) return null;
+    if (spec.v === 4) return { type: 'prefix', res: spec.bare ? NK.intToIpv4(spec.ip) : NK.intToIpv4(NK.cidr4Info(spec.ip, spec.prefix).network) + '/' + spec.prefix };
+    var i = NK.ipv6Info(spec.ip, spec.prefix);
+    return { type: 'prefix', res: spec.bare ? NK.formatIpv6(spec.ip) : NK.formatIpv6(i.network) + '/' + spec.prefix };
+  }
+
+  /* ---------- ASN view ---------- */
+  function asnView(asn) {
+    out.innerHTML = '<p><span class="spin"></span>Querying RIPEstat for AS' + NK.esc(asn) + '…</p>';
+    var res = 'AS' + asn;
+    return Promise.all([safe(ripe('as-overview', res)), safe(ripe('announced-prefixes', res)), safe(ripe('asn-neighbours', res))]).then(function (r) {
+      var ov = r[0], pf = r[1], nb = r[2], h = '';
+      if (ov.err && pf.err && nb.err) { out.innerHTML = err(ov.err); return; }
+      h += '<dl class="kv">';
+      if (ov.d) {
+        h += row('ASN', 'AS' + NK.esc(asn)) + row('Holder', NK.esc(ov.d.holder || 'Not registered / unknown'));
+        h += row('Originates prefixes', ov.d.announced ? '<span class="badge good">Yes</span>' : '<span class="badge warn">No</span> <span class="muted">(transit-only or not visible to enough route collectors)</span>');
+        if (ov.d.block) h += row('Registry block', NK.esc((ov.d.block.resource || '') + ' · ' + (ov.d.block.name || '') + (ov.d.block.desc ? ' · ' + ov.d.block.desc : '')));
+      } else h += row('Overview', '<span class="muted">Unavailable: ' + NK.esc(ov.err) + '</span>');
+      var list = pf.d && pf.d.prefixes ? pf.d.prefixes.map(function (x) { return x.prefix; }) : null;
+      if (list) {
+        var v6 = list.filter(function (p) { return p.indexOf(':') >= 0; }).length;
+        h += row('Announced prefixes', NK.fmtNum(list.length) + ' <span class="muted">(' + NK.fmtNum(list.length - v6) + ' IPv4, ' + NK.fmtNum(v6) + ' IPv6)</span>');
+      } else h += row('Announced prefixes', '<span class="muted">Unavailable: ' + NK.esc(pf.err || '') + '</span>');
+      if (nb.d && nb.d.neighbour_counts) {
+        var c = nb.d.neighbour_counts;
+        h += row('Neighbours seen in AS paths', NK.fmtNum(c.unique || 0) + ' unique <span class="muted">(left ' + (c.left || 0) + ', right ' + (c.right || 0) + ', uncertain ' + (c.uncertain || 0) + ')</span>');
+      }
+      h += '</dl>';
+
+      if (nb.d && nb.d.neighbours && nb.d.neighbours.length) {
+        var ns = nb.d.neighbours.slice().sort(function (a, b) { return (b.power || 0) - (a.power || 0); }).slice(0, 15);
+        h += '<h2 class="sub">Top neighbours</h2><p class="muted" style="margin-top:0">Ranked by the number of AS paths that contain the relationship. “Left” and “right” describe the neighbour’s position in AS paths relative to this AS. “Uncertain” entries may be artefacts of route-collector peering.</p><div class="table-wrap"><table class="data"><thead><tr><th>ASN</th><th>Position</th><th>AS paths</th><th>IPv4 peers</th><th>IPv6 peers</th></tr></thead><tbody>';
+        ns.forEach(function (n) { h += '<tr><td class="mono">' + asLink(n.asn) + '</td><td>' + NK.esc(n.type) + '</td><td>' + NK.fmtNum(n.power || 0) + '</td><td>' + (n.v4_peers || 0) + '</td><td>' + (n.v6_peers || 0) + '</td></tr>'; });
+        h += '</tbody></table></div>';
+      }
+      if (list && list.length) {
+        var shown = list.slice(0, 100);
+        h += '<h2 class="sub">Announced prefixes</h2><div class="table-wrap" style="max-height:360px;overflow:auto"><table class="data"><thead><tr><th>Prefix</th></tr></thead><tbody>' +
+          shown.map(function (p) { return '<tr><td class="mono"><a href="?q=' + encodeURIComponent(p) + '" data-q="' + NK.esc(p) + '">' + NK.esc(p) + '</a></td></tr>'; }).join('') + '</tbody></table></div>' +
+          (list.length > shown.length ? '<p class="muted">Showing the first ' + shown.length + ' of ' + NK.fmtNum(list.length) + ' prefixes.</p>' : '');
+      }
+      h += ext([['bgp.he.net', 'https://bgp.he.net/AS' + asn], ['bgp.tools', 'https://bgp.tools/as/' + asn], ['PeeringDB', 'https://www.peeringdb.com/asn/' + asn]]);
+      h += raw('Show raw API data', { overview: ov.d || ov.err, neighbours: nb.d ? nb.d.neighbour_counts : nb.err });
+      out.innerHTML = h;
+    });
+  }
+
+  /* ---------- prefix / IP view ---------- */
+  function rpkiBadge(s) {
+    var map = { valid: ['good', 'Valid'], invalid_asn: ['bad', 'Invalid (wrong origin ASN)'], invalid_length: ['bad', 'Invalid (too specific)'], unknown: ['warn', 'Not found (no ROA)'] };
+    var m = map[s] || ['', s || 'Unknown'];
+    return '<span class="badge ' + m[0] + '">' + NK.esc(m[1]) + '</span>';
+  }
+  function prefixView(res) {
+    out.innerHTML = '<p><span class="spin"></span>Querying RIPEstat for ' + NK.esc(res) + '…</p>';
+    return safe(ripe('prefix-overview', res)).then(function (po) {
+      if (po.err) { out.innerHTML = err(po.err); return; }
+      var d = po.d, h = '<dl class="kv">';
+      h += row('Queried', NK.esc(res)) + row('Covering prefix', d.resource ? NK.esc(d.resource) : '—');
+      h += row('Announced', d.announced ? '<span class="badge good">Yes</span>' : '<span class="badge warn">No, not visible in global routing</span>');
+      if (d.is_less_specific) h += row('Note', '<span class="muted">The result is a larger block that covers what you asked for.</span>');
+      var asns = d.asns || [];
+      if (asns.length) h += row(asns.length > 1 ? 'Origin ASNs (multi-origin)' : 'Origin ASN', asns.map(function (a) { return asLink(a.asn) + ' <span class="muted">' + NK.esc(a.holder || '') + '</span>'; }).join('<br>'));
+      if (d.block) h += row('Registry block', NK.esc((d.block.resource || '') + ' · ' + (d.block.name || '') + (d.block.desc ? ' · ' + d.block.desc : '')));
+      if (typeof d.actual_num_related === 'number') h += row('Related prefixes', NK.fmtNum(d.actual_num_related));
+      h += '</dl>';
+      var target = d.resource || res;
+      if (d.announced && asns.length) {
+        return Promise.all(asns.slice(0, 5).map(function (a) {
+          return safe(ripe('rpki-validation', 'AS' + a.asn, '&prefix=' + encodeURIComponent(target))).then(function (v) { return { a: a, v: v }; });
+        })).then(function (vals) {
+          h += '<h2 class="sub">RPKI origin validation</h2><div class="table-wrap"><table class="data"><thead><tr><th>Origin</th><th>Prefix</th><th>Status</th></tr></thead><tbody>';
+          vals.forEach(function (x) {
+            h += '<tr><td class="mono">AS' + NK.esc(x.a.asn) + '</td><td class="mono">' + NK.esc(target) + '</td><td>' + (x.v.err ? '<span class="muted">' + NK.esc(x.v.err) + '</span>' : rpkiBadge(x.v.d && x.v.d.status)) + '</td></tr>';
+          });
+          h += '</tbody></table></div><p class="muted">RPKI checks whether a signed ROA authorises this origin AS to announce this prefix at this length. “Not found” means no ROA covers it, which is common and not itself an error.</p>';
+          h += ext([['bgp.he.net', 'https://bgp.he.net/net/' + target], ['bgp.tools', 'https://bgp.tools/prefix/' + target]]) + raw('Show raw API data', { prefix_overview: d, rpki: vals.map(function (x) { return x.v.d || x.v.err; }) });
+          out.innerHTML = h;
+        });
+      }
+      h += ext([['bgp.he.net', 'https://bgp.he.net/net/' + target]]) + raw('Show raw API data', d);
+      out.innerHTML = h;
+    });
+  }
+
+  function run(v) {
+    v = (v || '').trim();
+    if (!v) return;
+    var c = classify(v);
+    if (!c) { out.innerHTML = err('Enter an ASN (AS13335), an IP address, or a prefix such as 1.1.1.0/24.'); return; }
+    NK.setParams({ q: v });
+    var p = c.type === 'asn' ? asnView(c.asn) : prefixView(c.res);
+    p.catch(function (e) { out.innerHTML = err(e.message); });
+  }
+
+  NK.$('#bgp-form').addEventListener('submit', function (e) { e.preventDefault(); run(inp.value); });
+  NK.$$('.chip[data-ex]').forEach(function (b) { b.addEventListener('click', function () { inp.value = b.getAttribute('data-ex'); run(inp.value); }); });
+  out.addEventListener('click', function (e) {
+    var a = e.target.closest('a[data-q]');
+    if (a) { e.preventDefault(); inp.value = a.getAttribute('data-q'); run(inp.value); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  });
+  var pre = NK.getParam('q'); if (pre) { inp.value = pre; run(pre); }
+})();
+</script><section class="article"><h2>What this BGP looking glass shows</h2>
+<p>BGP (Border Gateway Protocol) is how networks on the internet tell each other which IP prefixes they can reach. Each network is an <strong>Autonomous System</strong> identified by an ASN. This tool queries the public <a href="https://stat.ripe.net/" target="_blank" rel="noopener noreferrer">RIPEstat</a> data API, which is built from RIPE RIS route collectors around the world, so you see routing as observed from the global table.</p>
+
+<h2>Looking up an ASN</h2>
+<p>For an ASN you get the registered holder, whether it originates prefixes that are visible globally, how many IPv4 and IPv6 prefixes it announces, and the neighbours seen next to it in AS paths. Click any neighbour or prefix to pivot to it.</p>
+
+<h2>Looking up an IP address or prefix</h2>
+<p>For an IP or prefix you get the covering announced prefix, the origin ASN or ASNs, the registry block it belongs to, and an <strong>RPKI</strong> validation result for each origin.</p>
+
+<h2>Understanding RPKI status</h2>
+<ul>
+<li><strong>Valid</strong>: a ROA authorises this origin AS to announce this prefix at this length.</li>
+<li><strong>Invalid (wrong origin ASN)</strong>: a ROA covers the prefix but names a different AS. This can indicate a hijack or a misconfiguration.</li>
+<li><strong>Invalid (too specific)</strong>: the announced prefix is longer than the ROA's maximum length.</li>
+<li><strong>Not found</strong>: no ROA covers the announcement. Many prefixes still have none.</li>
+</ul>
+
+<h2>Frequently asked questions</h2>
+<details><summary>What is an ASN?</summary><p>An Autonomous System Number identifies a network under a single routing policy, such as an ISP, a cloud provider or a large enterprise. ASNs are assigned by regional registries like RIPE NCC, ARIN and APNIC.</p></details>
+<details><summary>Why does an AS show as not originating prefixes?</summary><p>Some ASNs only provide transit, carrying traffic for others, and do not originate prefixes of their own. Others originate prefixes that too few route collectors see to count as globally visible.</p></details>
+<details><summary>Why might a prefix show as not announced?</summary><p>It may be unused, announced only within a private network, filtered by most upstreams, or announced as part of a larger covering prefix.</p></details>
+<details><summary>Where does the data come from?</summary><p>All data is fetched live from RIPEstat by your browser. It reflects what RIPE's route collectors currently see and can differ slightly from other looking glasses.</p></details>
+<details><summary>Can I use this to troubleshoot an outage?</summary><p>It is a quick first check: confirm a prefix is still announced, see which ASN originates it and whether RPKI validates. For real-time path analysis use your provider's looking glass or a collector with live updates.</p></details><p class="muted" style="margin-top:22px">Last reviewed November 15, 2026.</p></section><section class="related"><h2>Related tools</h2><div class="cards"><a class="card" href="/what-is-my-ip/"><span class="glyph">IP</span><h3>My IP</h3><p>Your public IPv4 and IPv6, ISP, ASN and location. Look up any IP.</p></a><a class="card" href="/cidr-calculator/"><span class="glyph">/24</span><h3>CIDR Calculator</h3><p>Network, broadcast, usable range, wildcard and subnet splitting for IPv4 and IPv6.</p></a><a class="card" href="/dns-lookup/"><span class="glyph">DNS</span><h3>DNS Lookup</h3><p>A, AAAA, MX, TXT, NS, CAA and more. Compare resolvers and reverse lookups.</p></a></div></section></div></div></div></main>
+<footer class="site-footer"><div class="wrap">
+<div class="cols">
+<div><h4>NetKit</h4><p>Free online tools for network engineers. Calculators run in your browser; lookups use public APIs.</p></div>
+<div><h4>Tools</h4><ul><li><a href="/what-is-my-ip/">My IP</a></li><li><a href="/cidr-calculator/">CIDR Calculator</a></li><li><a href="/dns-lookup/">DNS Lookup</a></li><li><a href="/bgp-asn-lookup/">BGP / ASN</a></li><li><a href="/subnet-chart/">Subnet Chart</a></li><li><a href="/port-numbers/">Port Numbers</a></li><li><a href="/ip-converter/">IP Converter</a></li><li><a href="/bandwidth-calculator/">Bandwidth Calc</a></li></ul></div>
+<div><h4>Company</h4><ul><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+</div>
+<p class="fine">&copy; 2026 NetKit. Results are provided for information only; verify before using them in production changes.</p>
+</div></footer>
+</body>
+</html>

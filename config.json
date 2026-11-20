@@ -1,0 +1,14 @@
+{
+  "site_name": "NetKit",
+  "tagline": "Free online tools for network engineers",
+  "domain": "yourdomain.com",
+  "contact_email": "contact@yourdomain.com",
+  "adsense": {
+    "publisher_id": "",
+    "slots": {
+      "in_content": "",
+      "bottom": "",
+      "sidebar": ""
+    }
+  }
+}

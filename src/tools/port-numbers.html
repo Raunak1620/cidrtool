@@ -1,0 +1,71 @@
+---
+slug: port-numbers
+order: 6
+title: Common TCP and UDP Port Numbers – Searchable Port List
+description: Searchable list of common TCP and UDP port numbers for network engineers, covering SSH, DNS, BGP, SNMP, RADIUS, syslog, CAPWAP and more, plus IP protocol numbers.
+h1: Common TCP and UDP Port Numbers
+nav: Port Numbers
+lead: Search {{PORT_COUNT}} well-known and commonly used ports by number, protocol or service, with security notes, plus the IP protocol numbers you need for ACLs.
+glyph: :443
+card: Searchable list of common TCP/UDP ports and IP protocol numbers.
+related: cidr-calculator, subnet-chart, dns-lookup
+keywords: port numbers tcp udp list ssh snmp bgp radius syslog firewall acl protocol numbers
+---
+<div class="tool">
+  <div class="row">
+    <div class="field" style="flex:2 1 260px"><label for="port-q">Search</label>
+      <input id="port-q" type="text" placeholder="e.g. 443, ssh, radius, syslog" spellcheck="false" autocomplete="off"></div>
+    <div class="field" style="flex:0 1 160px"><label for="port-p">Protocol</label>
+      <select id="port-p"><option value="">TCP and UDP</option><option>TCP</option><option>UDP</option></select></div>
+    <span class="muted" id="port-count" style="padding-bottom:12px"></span>
+  </div>
+  <div style="margin-top:12px">{{PORT_TABLE}}</div>
+  <p id="port-empty" class="muted" hidden>No matching ports. Try a service name or a number.</p>
+</div>
+<script>
+(function () {
+  var q = NK.$('#port-q'), p = NK.$('#port-p'), cnt = NK.$('#port-count'), empty = NK.$('#port-empty'), rows = NK.$$('#port-rows tr');
+  function apply() {
+    var t = q.value.trim().toLowerCase(), proto = p.value, n = 0;
+    rows.forEach(function (tr) {
+      var ok = (!t || tr.getAttribute('data-s').toLowerCase().indexOf(t) >= 0) && (!proto || tr.children[1].textContent.indexOf(proto) >= 0);
+      tr.hidden = !ok; if (ok) n++;
+    });
+    cnt.textContent = n + ' shown'; empty.hidden = n > 0;
+  }
+  q.addEventListener('input', function () { apply(); NK.setParams({ q: q.value.trim() }); });
+  p.addEventListener('change', apply);
+  var pre = NK.getParam('q'); if (pre) q.value = pre;
+  apply();
+})();
+</script>
+<!--ARTICLE-->
+<h2>How port numbers work</h2>
+<p>A port number identifies a service on a host, so many applications can share one IP address. Together with the transport protocol (TCP or UDP) it forms the destination of a connection. Ports are grouped by the IANA into three ranges:</p>
+<ul>
+<li><strong>0–1023, well-known ports</strong>: assigned to core services such as SSH (22), DNS (53) and HTTPS (443).</li>
+<li><strong>1024–49151, registered ports</strong>: assigned to specific applications on request, such as RADIUS (1812) or MySQL (3306).</li>
+<li><strong>49152–65535, dynamic or ephemeral ports</strong>: used by clients as the source port of outgoing connections.</li>
+</ul>
+
+<h2>Using ports in firewall rules and ACLs</h2>
+<p>Allow only what is needed, in the direction it is needed. Management protocols such as SSH, SNMP, RDP and database ports should never be reachable from the internet. For stateless filters remember that return traffic uses an ephemeral port. Where a service has both an insecure and a TLS-protected version (HTTP/HTTPS, LDAP/LDAPS, syslog/syslog over TLS) prefer the protected one.</p>
+
+<h2>Ports you meet in network operations</h2>
+<ul>
+<li><strong>Device management</strong>: SSH 22, NETCONF 830, SNMP 161/162, TACACS+ 49.</li>
+<li><strong>Network access control</strong>: RADIUS 1812/1813, CoA 3799, RadSec 2083. Cisco ISE also uses 8443 for portals, 9060 for the ERS API and 8910 for pxGrid.</li>
+<li><strong>Routing and resilience</strong>: BGP 179, LDP 646, BFD 3784/4784, HSRP 1985.</li>
+<li><strong>Wireless</strong>: CAPWAP control 5246 and data 5247.</li>
+<li><strong>Telemetry</strong>: syslog 514, NetFlow 2055 (by convention), IPFIX 4739, sFlow 6343, Zabbix 10050/10051.</li>
+</ul>
+
+<h2>IP protocol numbers</h2>
+<p>Some protocols have no ports at all because they run directly over IP. ACLs match them by protocol number or keyword.</p>
+{{PROTO_TABLE}}
+
+<h2>Frequently asked questions</h2>
+<details><summary>What is the difference between TCP and UDP ports?</summary><p>They are separate number spaces. TCP port 53 and UDP port 53 are different endpoints, even though DNS uses both. A service listens on a specific protocol and port combination.</p></details>
+<details><summary>Which port does BGP use?</summary><p>TCP 179. Both peers may initiate the session, so firewalls and control-plane ACLs must allow TCP 179 in both directions between peers.</p></details>
+<details><summary>Why does RADIUS have ports 1812 and 1645?</summary><p>Early RADIUS deployments used 1645 and 1646, which conflicted with another service. The official ports are 1812 for authentication and 1813 for accounting. Some devices still default to the old pair.</p></details>
+<details><summary>Is this list complete?</summary><p>No. It focuses on the ports network engineers meet most. The authoritative source is the IANA Service Name and Transport Protocol Port Number Registry.</p></details>

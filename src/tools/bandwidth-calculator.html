@@ -1,0 +1,125 @@
+---
+slug: bandwidth-calculator
+order: 8
+title: Bandwidth and Transfer Time Calculator – BDP and TCP Throughput
+description: Calculate file transfer time, the bandwidth needed to move data in a set time, bandwidth-delay product and the maximum TCP throughput for a given window and RTT.
+h1: Bandwidth, Transfer Time and TCP Throughput Calculator
+nav: Bandwidth Calc
+lead: Work out how long a transfer takes, how much bandwidth you need, and what TCP window size and round-trip time do to throughput.
+glyph: Mb/s
+card: Transfer time, required bandwidth, bandwidth-delay product and TCP throughput.
+related: cidr-calculator, port-numbers, what-is-my-ip
+keywords: bandwidth transfer time mbps gbps bdp tcp window rtt throughput mathis latency
+---
+<div class="tool">
+  <h2 class="sub" style="margin-top:0">1. How long will a transfer take?</h2>
+  <div class="row">
+    <div class="field"><label for="t-size">Data size</label><input id="t-size" type="number" min="0" step="any" value="100"></div>
+    <div class="field" style="flex:0 1 110px"><label for="t-su">Unit</label><select id="t-su"><option>KB</option><option>MB</option><option selected>GB</option><option>TB</option><option>KiB</option><option>MiB</option><option>GiB</option><option>TiB</option></select></div>
+    <div class="field"><label for="t-bw">Link speed</label><input id="t-bw" type="number" min="0" step="any" value="1"></div>
+    <div class="field" style="flex:0 1 110px"><label for="t-bu">Unit</label><select id="t-bu"><option>Kbps</option><option>Mbps</option><option selected>Gbps</option></select></div>
+    <div class="field" style="flex:0 1 130px"><label for="t-eff">Efficiency %</label><input id="t-eff" type="number" min="1" max="100" step="any" value="90"></div>
+  </div>
+  <div class="box" style="margin-top:12px" id="t-out" aria-live="polite"></div>
+</div>
+
+<div class="tool" style="margin-top:16px">
+  <h2 class="sub" style="margin-top:0">2. How much bandwidth do I need?</h2>
+  <div class="row">
+    <div class="field"><label for="b-size">Data size</label><input id="b-size" type="number" min="0" step="any" value="500"></div>
+    <div class="field" style="flex:0 1 110px"><label for="b-su">Unit</label><select id="b-su"><option>KB</option><option>MB</option><option selected>GB</option><option>TB</option><option>KiB</option><option>MiB</option><option>GiB</option><option>TiB</option></select></div>
+    <div class="field"><label for="b-time">Time window</label><input id="b-time" type="number" min="0" step="any" value="4"></div>
+    <div class="field" style="flex:0 1 130px"><label for="b-tu">Unit</label><select id="b-tu"><option value="1">seconds</option><option value="60">minutes</option><option value="3600" selected>hours</option><option value="86400">days</option></select></div>
+    <div class="field" style="flex:0 1 130px"><label for="b-eff">Efficiency %</label><input id="b-eff" type="number" min="1" max="100" step="any" value="90"></div>
+  </div>
+  <div class="box" style="margin-top:12px" id="b-out" aria-live="polite"></div>
+</div>
+
+<div class="tool" style="margin-top:16px">
+  <h2 class="sub" style="margin-top:0">3. Bandwidth-delay product and TCP throughput</h2>
+  <div class="row">
+    <div class="field"><label for="w-bw">Link bandwidth (Mbps)</label><input id="w-bw" type="number" min="0" step="any" value="1000"></div>
+    <div class="field"><label for="w-rtt">Round-trip time (ms)</label><input id="w-rtt" type="number" min="0" step="any" value="80"></div>
+    <div class="field"><label for="w-win">TCP window (KiB)</label><input id="w-win" type="number" min="0" step="any" value="64"></div>
+    <div class="field"><label for="w-mss">MSS (bytes)</label><input id="w-mss" type="number" min="1" step="any" value="1460"></div>
+    <div class="field"><label for="w-loss">Packet loss %</label><input id="w-loss" type="number" min="0" step="any" value="0.01"></div>
+  </div>
+  <div class="box" style="margin-top:12px" id="w-out" aria-live="polite"></div>
+</div>
+
+<script>
+(function () {
+  var BYTES = { KB: 1e3, MB: 1e6, GB: 1e9, TB: 1e12, KiB: 1024, MiB: 1048576, GiB: 1073741824, TiB: 1099511627776 };
+  var BPS = { Kbps: 1e3, Mbps: 1e6, Gbps: 1e9 };
+  function v(id) { return parseFloat(NK.$('#' + id).value); }
+  function ok() { for (var i = 0; i < arguments.length; i++) if (!(arguments[i] > 0) || !isFinite(arguments[i])) return false; return true; }
+  function num(x, d) { return Number(x).toLocaleString(undefined, { maximumFractionDigits: d === undefined ? 2 : d }); }
+  function rate(bps) {
+    if (bps >= 1e9) return num(bps / 1e9) + ' Gbps'; if (bps >= 1e6) return num(bps / 1e6) + ' Mbps';
+    if (bps >= 1e3) return num(bps / 1e3) + ' Kbps'; return num(bps, 0) + ' bps';
+  }
+  function size(b) {
+    var u = ['B', 'KB', 'MB', 'GB', 'TB'], i = 0, x = b; while (x >= 1000 && i < u.length - 1) { x /= 1000; i++; }
+    var bu = ['B', 'KiB', 'MiB', 'GiB', 'TiB'], j = 0, y = b; while (y >= 1024 && j < bu.length - 1) { y /= 1024; j++; }
+    return num(x) + ' ' + u[i] + ' (' + num(y) + ' ' + bu[j] + ')';
+  }
+  function dur(s) {
+    if (s < 1) return num(s * 1000, 1) + ' ms';
+    var d = Math.floor(s / 86400); s -= d * 86400; var h = Math.floor(s / 3600); s -= h * 3600; var m = Math.floor(s / 60); s -= m * 60;
+    var p = []; if (d) p.push(d + 'd'); if (h) p.push(h + 'h'); if (m) p.push(m + 'm');
+    if (s >= 0.5 || !p.length) p.push(num(d || h || m ? Math.round(s) : s, d || h || m ? 0 : 1) + 's');
+    return p.join(' ');
+  }
+  function line(k, val) { return '<div><span class="muted">' + k + ':</span> <strong class="mono">' + val + '</strong></div>'; }
+
+  function t1() {
+    var bytes = v('t-size') * BYTES[NK.$('#t-su').value], bps = v('t-bw') * BPS[NK.$('#t-bu').value], eff = v('t-eff') / 100, o = NK.$('#t-out');
+    if (!ok(bytes, bps, eff)) { o.innerHTML = '<span class="muted">Enter positive values.</span>'; return; }
+    var eff_bps = bps * Math.min(eff, 1), sec = bytes * 8 / eff_bps;
+    o.innerHTML = line('Transfer time', dur(sec)) + line('Effective throughput', rate(eff_bps) + ' (' + num(eff_bps / 8 / 1e6) + ' MB/s)') +
+      line('Time at 100% efficiency', dur(bytes * 8 / bps));
+  }
+  function t2() {
+    var bytes = v('b-size') * BYTES[NK.$('#b-su').value], sec = v('b-time') * parseFloat(NK.$('#b-tu').value), eff = v('b-eff') / 100, o = NK.$('#b-out');
+    if (!ok(bytes, sec, eff)) { o.innerHTML = '<span class="muted">Enter positive values.</span>'; return; }
+    var need = bytes * 8 / sec / Math.min(eff, 1);
+    o.innerHTML = line('Required link speed', rate(need)) + line('Average payload rate', rate(bytes * 8 / sec) + ' (' + num(bytes / sec / 1e6) + ' MB/s)');
+  }
+  function t3() {
+    var bw = v('w-bw') * 1e6, rtt = v('w-rtt') / 1000, win = v('w-win') * 1024, mss = v('w-mss'), loss = v('w-loss') / 100, o = NK.$('#w-out');
+    if (!ok(bw, rtt)) { o.innerHTML = '<span class="muted">Enter a positive bandwidth and RTT.</span>'; return; }
+    var bdp = bw * rtt / 8, h = line('Bandwidth-delay product', size(bdp)) +
+      '<div class="muted" style="margin:2px 0 8px">The window needed to keep this link full. Larger than 64 KiB requires TCP window scaling.</div>';
+    if (ok(win)) {
+      var cap = win * 8 / rtt, eff = Math.min(cap, bw);
+      h += line('Max throughput for a ' + num(win / 1024, 0) + ' KiB window', rate(cap)) +
+        line('Limited by', cap < bw ? 'the window (the link is underused: ' + num(cap / bw * 100, 1) + '% of capacity)' : 'link bandwidth') + line('Achievable', rate(eff));
+    }
+    if (ok(mss, loss)) h += line('Loss-limited estimate (Mathis)', rate(Math.min(mss * 8 / rtt * 1.22 / Math.sqrt(loss), bw))) +
+      '<div class="muted">An upper-bound estimate for classic TCP Reno-style congestion control; modern algorithms such as CUBIC and BBR can do better.</div>';
+    o.innerHTML = h;
+  }
+  ['t-size', 't-su', 't-bw', 't-bu', 't-eff'].forEach(function (id) { NK.$('#' + id).addEventListener('input', t1); });
+  ['b-size', 'b-su', 'b-time', 'b-tu', 'b-eff'].forEach(function (id) { NK.$('#' + id).addEventListener('input', t2); });
+  ['w-bw', 'w-rtt', 'w-win', 'w-mss', 'w-loss'].forEach(function (id) { NK.$('#' + id).addEventListener('input', t3); });
+  t1(); t2(); t3();
+})();
+</script>
+<!--ARTICLE-->
+<h2>Bits, bytes and why transfers feel slower than the link speed</h2>
+<p>Link speeds are quoted in <strong>bits</strong> per second (Mbps, Gbps) while file sizes are in <strong>bytes</strong>. There are 8 bits in a byte, so a 1 Gbps link moves at most 125 MB/s. Real transfers are slower because of Ethernet, IP and TCP headers, retransmissions, encryption, and the speed of the disks and CPUs at each end. The <em>efficiency</em> field accounts for this; 90% is a reasonable default for bulk TCP transfers on a clean link, and encrypted VPN tunnels often achieve less.</p>
+
+<h2>Decimal and binary units</h2>
+<p>Network speeds use decimal prefixes (1 Mbps = 1,000,000 bits/s). File sizes may be decimal (MB, GB) or binary (MiB, GiB, where 1 MiB = 1,048,576 bytes). The calculator supports both so you do not accumulate a 5–7% error converting between them.</p>
+
+<h2>Bandwidth-delay product and TCP window size</h2>
+<p>A TCP sender can only have one window of unacknowledged data in flight. The most it can send per round trip is the window size, so <strong>maximum throughput = window ÷ RTT</strong>. To fill a link you need a window at least equal to the <strong>bandwidth-delay product</strong> (bandwidth × RTT). On a 1 Gbps path with 80 ms of latency that is 10 MB. A default 64 KiB window would cap throughput at about 6.5 Mbps, which is why long fat networks need TCP window scaling and well-tuned buffers.</p>
+
+<h2>Packet loss and the Mathis estimate</h2>
+<p>Even a small amount of loss limits classic TCP, because each loss makes the sender slow down. The Mathis formula estimates throughput as roughly MSS ÷ (RTT × √loss) × 1.22. The tool shows this as a ceiling so you can see how much a lossy WAN link or wireless hop costs at a given RTT.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>How long does it take to transfer 1 TB over a 1 Gbps link?</summary><p>At 100% efficiency about 2 hours 13 minutes; at 90% about 2 hours 28 minutes. Use section 1 above with your own numbers.</p></details>
+<details><summary>What efficiency should I use?</summary><p>90–94% for local wired TCP transfers, 70–85% over a VPN or high-latency WAN, and lower for Wi-Fi. If you have measurements from iperf, use those.</p></details>
+<details><summary>Why is my throughput limited on a high-latency link?</summary><p>Most often the TCP window is smaller than the bandwidth-delay product, or there is packet loss. Compare the maximum throughput for your window with the link speed in section 3.</p></details>
+<details><summary>What is the difference between Mbps and MB/s?</summary><p>Mbps is megabits per second; MB/s is megabytes per second. Divide Mbps by 8 to get MB/s.</p></details>

@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NetKit: CIDR Visualizer and Free Network Tools</title>
+<meta name="description" content="Visualize any CIDR block bit by bit and see how the maths works, then use free network tools: subnet calculator, DNS lookup, BGP and ASN lookup, what is my IP, port numbers and more.">
+<link rel="canonical" href="https://yourdomain.com/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NetKit">
+<meta property="og:title" content="NetKit: CIDR Visualizer and Free Network Tools">
+<meta property="og:description" content="Visualize any CIDR block bit by bit and see how the maths works, then use free network tools: subnet calculator, DNS lookup, BGP and ASN lookup, what is my IP, port numbers and more.">
+<meta property="og:url" content="https://yourdomain.com/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0b6bde">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem('nk-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="stylesheet" href="/assets/css/style.css?v=f6190cd9">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite", "name": "NetKit", "url": "https://yourdomain.com/"}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "CIDR Visualizer", "url": "https://yourdomain.com/", "applicationCategory": "DeveloperApplication", "operatingSystem": "Any", "browserRequirements": "Requires JavaScript", "description": "Visualize any CIDR block bit by bit and see how the maths works, then use free network tools: subnet calculator, DNS lookup, BGP and ASN lookup, what is my IP, port numbers and more.", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What does /24 mean?", "acceptedAnswer": {"@type": "Answer", "text": "The first 24 bits identify the network and the last 8 identify hosts. That gives 256 addresses, of which 254 are usable because the first is the network address and the last is the broadcast address. The netmask is 255.255.255.0."}}, {"@type": "Question", "name": "How many usable hosts are in a /26?", "acceptedAnswer": {"@type": "Answer", "text": "A /26 has 6 host bits, so 26 = 64 addresses and 62 usable hosts. The netmask is 255.255.255.192."}}, {"@type": "Question", "name": "What is the difference between a prefix length and a subnet mask?", "acceptedAnswer": {"@type": "Answer", "text": "They describe the same thing. A /26 prefix and the mask 255.255.255.192 both say that the first 26 bits are the network. The wildcard mask, used in Cisco ACLs, is the inverse: 0.0.0.63."}}, {"@type": "Question", "name": "Does this viewer support IPv6?", "acceptedAnswer": {"@type": "Answer", "text": "The bit view is IPv4 only. The CIDR calculator handles IPv6 prefixes, including how many /64 subnets fit inside a block."}}, {"@type": "Question", "name": "Can I share a block with a colleague?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. After you change the block, the page address updates, so you can copy the URL and the other person will see the same block."}}]}</script>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">/24</span>NetKit</a>
+<div class="header-actions"><button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">Theme</button></div>
+</div></header>
+<nav class="tabs" aria-label="Tools"><div class="wrap"><a class="tab" href="/what-is-my-ip/">My IP</a><a class="tab" href="/cidr-calculator/">CIDR Calculator</a><a class="tab" href="/dns-lookup/">DNS Lookup</a><a class="tab" href="/bgp-asn-lookup/">BGP / ASN</a><a class="tab" href="/subnet-chart/">Subnet Chart</a><a class="tab" href="/port-numbers/">Port Numbers</a><a class="tab" href="/ip-converter/">IP Converter</a><a class="tab" href="/bandwidth-calculator/">Bandwidth Calc</a></div></nav>
+<script src="/assets/js/net.js?v=44da7539"></script>
+<script src="/assets/js/app.js?v=411fe5fd"></script>
+<section class="hero"><div class="wrap"><h1>See any CIDR block, bit by bit</h1><p class="lead">Type a block or tap a prefix to see network and host bits, the address range and the maths behind it. Then use the other tools network engineers reach for every day.</p></div></section><main><div class="wrap"><div class="layout"><div class="content"><style>
+.cv { --ink: var(--text); --net-ink: var(--accent-ink);
+  --host-bg: color-mix(in srgb, var(--host) 13%, var(--surface)); --host-line: color-mix(in srgb, var(--host) 38%, var(--surface));
+  --host-ink: color-mix(in srgb, var(--host) 72%, var(--text));
+  display: grid; gap: 28px; min-width: 0; color: var(--text); }
+.cv-top { margin-bottom: 10px; }
+.cv .cv-note { margin: 0; color: var(--muted); font-size: .92rem; max-width: 68ch; }
+.cv .explain { margin-top: 0; }
+.cv .entry { display: grid; gap: 14px; }
+.cv .entry label { font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.cv #cidr { width: 100%; min-width: 0; font: 500 clamp(1.7rem, 7.2vw, 3.4rem)/1.1 var(--mono); letter-spacing: -.03em; color: var(--ink);
+  background: transparent; border: 0; border-bottom: 2px solid var(--line); padding: 4px 0 10px; border-radius: 0; }
+.cv #cidr:focus { outline: 0; border-bottom-color: var(--net); }
+.cv #cidr[aria-invalid="true"] { border-bottom-color: var(--bad); }
+.cv #msg { min-height: 1.4em; margin: 0; font-size: .9rem; color: var(--bad); }
+.cv #msg.ok { color: var(--muted); }
+.cv .slider { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; font: 500 .85rem var(--mono); color: var(--muted); }
+.cv input[type=range] { width: 100%; min-width: 0; accent-color: var(--net); height: 28px; margin: 0; }
+.cv .chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.cv .chips span { font-size: .85rem; color: var(--muted); }
+.cv .chip { font: 500 .82rem var(--mono); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; min-height: 34px; }
+.cv .chip:hover { border-color: var(--net); color: var(--net); }
+.cv .pfx { display: flex; flex-wrap: wrap; gap: 6px; }
+.cv .pf { font: 500 .85rem var(--mono); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; min-width: 46px; min-height: 40px; padding: 0 10px; cursor: pointer; font-variant-numeric: tabular-nums; }
+.cv .pf:hover { border-color: var(--net); color: var(--net); }
+.cv .pf.on, .cv .pf.on:hover { background: var(--net); border-color: var(--net); color: var(--net-ink); }
+.cv .pf.step { color: var(--muted); min-width: 40px; font-size: 1rem; }
+.cv .reg-wrap { display: grid; gap: 10px; }
+.cv .reg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 14px; }
+@media (max-width: 640px) {
+.cv .reg { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.cv .oct { display: grid; gap: 6px; min-width: 0; }
+.cv .dec { font: 700 1.5rem var(--mono); letter-spacing: -.03em; }
+.cv .bits { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; }
+.cv .bit { appearance: none; border: 1px solid transparent; border-radius: 4px; padding: 0; min-width: 0; aspect-ratio: 1 / 1.35;
+  display: grid; place-items: center; font: 500 clamp(.85rem, 2.6vw, 1.05rem) var(--mono); cursor: pointer; transition: background-color .12s, color .12s; }
+.cv .bit.n { background: var(--net); color: var(--net-ink); }
+.cv .bit.h { background: var(--host-bg); color: var(--host-ink); border-color: var(--host-line); }
+.cv .bit.edge { box-shadow: -3px 0 0 var(--ink); }
+.cv .bit:hover { filter: brightness(1.12); }
+.cv .key { display: flex; gap: 20px; flex-wrap: wrap; font-size: .85rem; color: var(--muted); }
+.cv .key i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; }
+.cv .key .kn { background: var(--net); }
+.cv .key .kh { background: var(--host-bg); border: 1px solid var(--host-line); }
+.cv .key .ke { width: 3px; height: 12px; border-radius: 0; background: var(--ink); }
+.cv .range { display: grid; gap: 4px; }
+.cv .range .r { font: 500 clamp(1.15rem, 4.6vw, 1.9rem)/1.25 var(--mono); letter-spacing: -.02em; overflow-wrap: anywhere; }
+.cv .range .r em { font-style: normal; color: var(--muted); padding: 0 .25em; }
+.cv .range .c { font-size: 1.05rem; color: var(--muted); }
+.cv .range .c strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+.cv .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0 32px; margin: 0; border-top: 1px solid var(--line); }
+.cv .facts > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+.cv .facts dt { color: var(--muted); font-size: .88rem; }
+.cv .facts dd { margin: 0; text-align: right; min-width: 0; }
+.cv .cp { font: 500 .95rem var(--mono); background: none; border: 0; color: var(--ink); cursor: pointer; padding: 2px 4px; border-radius: 4px; overflow-wrap: anywhere; text-align: right; }
+.cv .cp:hover { background: var(--host-bg); }
+.cv .cp.done { color: var(--good); }
+.cv .how { color: var(--muted); font-size: .92rem; max-width: 68ch; margin: 0; }
+.cv .explain { display: grid; gap: 18px; border-top: 1px solid var(--line); padding-top: 30px; margin-top: 6px; }
+.cv .explain h2 { font: 600 1.4rem/1.25 var(--sans); letter-spacing: -.015em; margin: 14px 0 0; text-wrap: balance; }
+.cv .explain h2:first-child { margin-top: 0; }
+.cv .explain p { margin: 0; color: var(--muted); max-width: 68ch; }
+.cv .explain p b, .cv .explain li b { color: var(--ink); font-weight: 600; }
+.cv .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 26px; counter-reset: s; }
+.cv .steps > li { display: grid; gap: 10px; padding-left: 46px; position: relative; counter-increment: s; min-width: 0; }
+.cv .steps > li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; font: 600 .85rem var(--mono); }
+.cv .steps h3 { font: 600 1.08rem/1.3 var(--sans); margin: 4px 0 0; }
+.cv .calc { font: 500 .92rem/1.8 var(--mono); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; overflow-x: auto; color: var(--ink); }
+.cv .calc .n { color: var(--net); font-weight: 700; }
+.cv .calc .h { color: var(--host-ink); font-weight: 700; }
+.cv .calc sup { font-size: .7em; }
+.cv .ladder { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; }
+.cv .rung { border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; font: 500 .85rem var(--mono); background: var(--surface); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.cv .rung small { display: block; color: var(--muted); font-size: .72rem; }
+.cv .rung.on { background: var(--net); color: var(--net-ink); border-color: var(--net); }
+.cv .rung.on small { color: inherit; opacity: .85; }
+.cv .ctl { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.cv .ctl label { font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.cv .ctl select, .cv .ctl input { font: 500 1rem var(--mono); background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-height: 42px; min-width: 0; }
+.cv .ctl input { width: 12ch; }
+.cv .tblw { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.cv .tblw table { border-collapse: collapse; width: 100%; font: 500 .88rem var(--mono); font-variant-numeric: tabular-nums; }
+.cv .tblw th, .cv .tblw td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.cv .tblw tr:last-child td { border-bottom: 0; }
+.cv .tblw th { font: 600 .72rem var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.cv .vout { display: grid; gap: 12px; }
+@media (prefers-reduced-motion: reduce) {
+.cv .bit { transition: none; }
+}
+</style>
+<div class="cv cv-top" id="cv">
+<p class="cv-note">Type a block, drag the slider, tap a prefix, or tap any bit to move the network boundary.</p>
+<form class="entry" id="cv-form" autocomplete="off">
+    <label for="cidr">IPv4 block</label>
+    <input id="cidr" type="text" inputmode="text" spellcheck="false" autocapitalize="off" autocorrect="off" value="10.0.0.0/22" aria-describedby="msg">
+    <p id="msg" class="ok" role="status" aria-live="polite"></p>
+    <div class="slider">
+      <span>/0</span>
+      <input id="plen" type="range" min="0" max="32" step="1" value="22" aria-label="Prefix length">
+      <span>/32</span>
+    </div>
+    <div class="pfx" id="pfx" role="group" aria-label="Quick prefix length"></div>
+    <div class="chips"><span>Examples</span>
+      <button type="button" class="chip" data-v="10.0.0.0/8">10.0.0.0/8</button>
+      <button type="button" class="chip" data-v="172.16.0.0/12">172.16.0.0/12</button>
+      <button type="button" class="chip" data-v="192.168.1.0/24">192.168.1.0/24</button>
+      <button type="button" class="chip" data-v="203.0.113.64/26">203.0.113.64/26</button>
+      <button type="button" class="chip" data-v="10.0.0.4/31">10.0.0.4/31</button>
+      <button type="button" class="chip" data-v="8.8.8.8/32">8.8.8.8/32</button>
+    </div>
+  </form>
+<section class="reg-wrap" aria-label="Address in binary">
+    <div class="reg" id="reg"></div>
+    <div class="key">
+      <span><i class="kn"></i>Network bits (fixed)</span>
+      <span><i class="kh"></i>Host bits (free to vary)</span>
+      <span><i class="ke"></i>Prefix boundary</span>
+    </div>
+  </section>
+<section class="range" aria-live="polite">
+    <div class="r" id="range"></div>
+    <div class="c" id="count"></div>
+  </section>
+<dl class="facts" id="facts"></dl>
+<p class="cv-note">This view is IPv4. For IPv6, membership checks and bulk subnet splitting, use the <a href="/cidr-calculator/">full CIDR calculator</a>.</p>
+</div>
+<h2 class="sub" id="tools">More tools</h2><label class="sr-only" for="tool-search">Search tools</label><input class="search" id="tool-search" type="text" placeholder="Search tools: cidr, dns, bgp, port 443…" autocomplete="off"><div class="cards" id="tool-cards"><a class="card" href="/what-is-my-ip/" data-s="My IP Your public IPv4 and IPv6, ISP, ASN and location. Look up any IP. ip address public ipv6 isp geolocation reverse dns"><span class="glyph">IP</span><h3>My IP</h3><p>Your public IPv4 and IPv6, ISP, ASN and location. Look up any IP.</p></a><a class="card" href="/cidr-calculator/" data-s="CIDR Calculator Network, broadcast, usable range, wildcard and subnet splitting for IPv4 and IPv6. subnet calculator netmask wildcard ipv6 vlsm cidr"><span class="glyph">/24</span><h3>CIDR Calculator</h3><p>Network, broadcast, usable range, wildcard and subnet splitting for IPv4 and IPv6.</p></a><a class="card" href="/dns-lookup/" data-s="DNS Lookup A, AAAA, MX, TXT, NS, CAA and more. Compare resolvers and reverse lookups. dns records mx txt spf dmarc nameserver propagation ptr doh"><span class="glyph">DNS</span><h3>DNS Lookup</h3><p>A, AAAA, MX, TXT, NS, CAA and more. Compare resolvers and reverse lookups.</p></a><a class="card" href="/bgp-asn-lookup/" data-s="BGP / ASN ASN holder, announced prefixes, neighbours and RPKI status from RIPEstat. bgp asn autonomous system prefix rpki roa peering routing looking glass"><span class="glyph">AS</span><h3>BGP / ASN</h3><p>ASN holder, announced prefixes, neighbours and RPKI status from RIPEstat.</p></a><a class="card" href="/subnet-chart/" data-s="Subnet Chart Searchable CIDR, netmask and wildcard chart for /0 to /32, plus IPv6 sizes. subnet mask chart cidr cheat sheet wildcard hosts table vlsm"><span class="glyph">/n</span><h3>Subnet Chart</h3><p>Searchable CIDR, netmask and wildcard chart for /0 to /32, plus IPv6 sizes.</p></a><a class="card" href="/port-numbers/" data-s="Port Numbers Searchable list of common TCP/UDP ports and IP protocol numbers. port numbers tcp udp list ssh snmp bgp radius syslog firewall acl protocol numbers"><span class="glyph">:443</span><h3>Port Numbers</h3><p>Searchable list of common TCP/UDP ports and IP protocol numbers.</p></a><a class="card" href="/ip-converter/" data-s="IP Converter IPv4 to decimal, hex, binary and octal. IPv6 expand, compress and PTR names. ip to decimal hex binary octal ipv6 expand compress ptr reverse dns"><span class="glyph">0x</span><h3>IP Converter</h3><p>IPv4 to decimal, hex, binary and octal. IPv6 expand, compress and PTR names.</p></a><a class="card" href="/bandwidth-calculator/" data-s="Bandwidth Calc Transfer time, required bandwidth, bandwidth-delay product and TCP throughput. bandwidth transfer time mbps gbps bdp tcp window rtt throughput mathis latency"><span class="glyph">Mb/s</span><h3>Bandwidth Calc</h3><p>Transfer time, required bandwidth, bandwidth-delay product and TCP throughput.</p></a></div><script>NK.filterRows(NK.$("#tool-search"),"#tool-cards .card");</script>
+<div class="cv">
+<section class="explain" id="explain">
+    <h2>How this is calculated</h2>
+    <p>Nothing above is looked up. It comes from powers of two and a few bitwise steps. Here is the working for the block you typed; it updates as you edit.</p>
+    <ol class="steps" id="steps"></ol>
+
+    <h2>Splitting the block into subnets</h2>
+    <p>Subnetting is the same powers-of-two idea in reverse. Turn some host bits into network bits and the block divides into equal smaller blocks.</p>
+    <div class="ctl"><label for="split-k">Borrow host bits</label><select id="split-k"></select></div>
+    <div class="vout" id="split-out"></div>
+
+    <h2>How many host bits do I need?</h2>
+    <p>Work backwards from the number of devices. Find the smallest power of two that leaves room for them after the network and broadcast addresses are taken out.</p>
+    <div class="ctl"><label for="need-n">Hosts needed</label><input id="need-n" type="text" inputmode="numeric" value="50" autocomplete="off"></div>
+    <div class="vout" id="need-out"></div>
+  </section>
+</div>
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var inp = $('#cidr'), slider = $('#plen'), msg = $('#msg'), reg = $('#reg');
+  var state = { ip: 0x0A000000, p: 22 };
+
+  function toIp(n) { return [n >>> 24, (n >>> 16) & 255, (n >>> 8) & 255, n & 255].join('.'); }
+  function mask(p) { return p === 0 ? 0 : (0xFFFFFFFF << (32 - p)) >>> 0; }
+  function fmt(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+  var SPECIAL = [['10.0.0.0', 8, 'Private (RFC 1918)'], ['172.16.0.0', 12, 'Private (RFC 1918)'], ['192.168.0.0', 16, 'Private (RFC 1918)'],
+    ['100.64.0.0', 10, 'Shared / CGNAT'], ['127.0.0.0', 8, 'Loopback'], ['169.254.0.0', 16, 'Link-local'],
+    ['192.0.2.0', 24, 'Documentation'], ['198.51.100.0', 24, 'Documentation'], ['203.0.113.0', 24, 'Documentation'],
+    ['224.0.0.0', 4, 'Multicast'], ['240.0.0.0', 4, 'Reserved']];
+  function parseIp(s) { var m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(s); if (!m) return null; var n = 0; for (var i = 1; i <= 4; i++) { var o = +m[i]; if (o > 255) return null; n = n * 256 + o; } return n; }
+  function scope(net, p) {
+    if (p === 0) return 'Entire IPv4 space';
+    var end = net + Math.pow(2, 32 - p) - 1;
+    for (var i = 0; i < SPECIAL.length; i++) {
+      var s = parseIp(SPECIAL[i][0]), e = s + Math.pow(2, 32 - SPECIAL[i][1]) - 1;
+      if (net >= s && end <= e) return SPECIAL[i][2];
+    }
+    return 'Public';
+  }
+
+  /* build the 32 cells once */
+  var cells = [];
+  for (var o = 0; o < 4; o++) {
+    var oct = document.createElement('div'); oct.className = 'oct';
+    var dec = document.createElement('div'); dec.className = 'dec'; oct.appendChild(dec);
+    var bits = document.createElement('div'); bits.className = 'bits';
+    for (var b = 0; b < 8; b++) {
+      var idx = o * 8 + b, btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'bit'; btn.tabIndex = -1; btn.setAttribute('data-i', idx);
+      bits.appendChild(btn); cells.push(btn);
+    }
+    oct.appendChild(bits); reg.appendChild(oct); oct.dec = dec;
+  }
+  var decs = Array.prototype.map.call(reg.children, function (c) { return c.dec; });
+  reg.addEventListener('click', function (e) {
+    var t = e.target.closest('.bit'); if (!t) return;
+    var i = +t.getAttribute('data-i'); setPrefix(state.p === i + 1 ? i : i + 1);
+  });
+
+  function row(k, v) { return '<div><dt>' + k + '</dt><dd><button type="button" class="cp" data-c="' + v + '" title="Copy">' + v + '</button></dd></div>'; }
+
+  function render() {
+    var ip = state.ip, p = state.p, m = mask(p), wild = (~m) >>> 0, net = (ip & m) >>> 0, bc = (net | wild) >>> 0;
+    var total = Math.pow(2, 32 - p), usable = p === 32 ? 1 : p === 31 ? 2 : total - 2;
+    var first = p >= 31 ? net : net + 1, last = p >= 31 ? bc : bc - 1;
+    for (var i = 0; i < 32; i++) {
+      var bit = (ip >>> (31 - i)) & 1, c = cells[i];
+      c.textContent = bit; c.className = 'bit ' + (i < p ? 'n' : 'h') + (i === p && p > 0 && p < 32 ? ' edge' : '');
+      c.setAttribute('aria-label', 'Bit ' + (i + 1) + ' is ' + bit + ', ' + (i < p ? 'network' : 'host') + '. Set prefix to /' + (i + 1));
+    }
+    for (var k = 0; k < 4; k++) decs[k].textContent = (ip >>> (24 - 8 * k)) & 255;
+    slider.value = p; markPfx(p);
+    $('#range').innerHTML = toIp(net) + '<em>to</em>' + toIp(bc);
+    $('#count').innerHTML = '<strong>' + fmt(total) + '</strong> addresses &middot; <strong>' + fmt(usable) + '</strong> usable &middot; ' + scope(net, p);
+    $('#facts').innerHTML =
+      row('CIDR', toIp(net) + '/' + p) + row('Netmask', toIp(m)) + row('Wildcard', toIp(wild)) +
+      row('Network address', toIp(net)) + (p >= 31 ? row('Broadcast', 'none') : row('Broadcast', toIp(bc))) +
+      row('First usable', toIp(first)) + row('Last usable', toIp(last)) + row('Host bits', String(32 - p));
+    var note = (ip !== net) ? 'Host bits are set in ' + toIp(ip) + '. The block starts at ' + toIp(net) + '.' : '';
+    msg.className = 'ok'; msg.textContent = note; inp.removeAttribute('aria-invalid');
+    explain(ip, p, m, wild, net, bc, total, usable, first, last);
+  }
+
+  var PFX = [8, 12, 15, 16, 20, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32], pfxEls = {};
+  (function () {
+    var box = $('#pfx');
+    function mk(txt, label, fn) { var b = document.createElement('button'); b.type = 'button'; b.className = 'pf'; b.textContent = txt; b.setAttribute('aria-label', label); b.addEventListener('click', fn); box.appendChild(b); return b; }
+    mk('−', 'Decrease prefix by one', function () { if (state.p > 0) setPrefix(state.p - 1); }).classList.add('step');
+    PFX.forEach(function (p) { pfxEls[p] = mk('/' + p, 'Set prefix to /' + p, function () { setPrefix(p); }); });
+    mk('+', 'Increase prefix by one', function () { if (state.p < 32) setPrefix(state.p + 1); }).classList.add('step');
+  })();
+  function markPfx(p) {
+    Object.keys(pfxEls).forEach(function (k) { var on = +k === p; pfxEls[k].classList.toggle('on', on); pfxEls[k].setAttribute('aria-pressed', on ? 'true' : 'false'); });
+  }
+
+  function share() { try { if (window.NK && NK.setParams) NK.setParams({ q: toIp(state.ip) + '/' + state.p }); } catch (e) { /* ignore */ } }
+  function setPrefix(p) { state.p = p; inp.value = toIp(state.ip) + '/' + p; render(); share(); }
+
+  function fromText(v) {
+    var m = /^\s*(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\s*\/\s*(\d{1,2}))?\s*$/.exec(v);
+    if (!m) { return 'Enter an address such as 10.0.0.0/22.'; }
+    var ip = parseIp(m[1]); if (ip === null) return 'Each number in the address must be 0 to 255.';
+    var p = m[2] === undefined ? state.p : +m[2]; if (p > 32) return 'The prefix length must be 0 to 32.';
+    state.ip = ip; state.p = p; render(); share(); return '';
+  }
+  inp.addEventListener('input', function () {
+    var err = fromText(inp.value);
+    if (err) { msg.className = ''; msg.textContent = inp.value.trim() ? err : ''; inp.setAttribute('aria-invalid', 'true'); }
+  });
+  $('#cv-form').addEventListener('submit', function (e) { e.preventDefault(); });
+  slider.addEventListener('input', function () { setPrefix(+slider.value); });
+  document.querySelectorAll('.chip').forEach(function (b) {
+    b.addEventListener('click', function () { inp.value = b.getAttribute('data-v'); fromText(inp.value); });
+  });
+  $('#facts').addEventListener('click', function (e) {
+    var b = e.target.closest('.cp'); if (!b) return;
+    var t = b.getAttribute('data-c'), old = b.textContent;
+    function done() { b.classList.add('done'); b.textContent = 'copied'; setTimeout(function () { b.classList.remove('done'); b.textContent = old; }, 900); }
+    try { navigator.clipboard.writeText(t).then(done, function () { sel(b); }); } catch (x) { sel(b); }
+    function sel(el) { var r = document.createRange(); r.selectNodeContents(el); var s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+  });
+
+  /* ---- worked explanation ---- */
+  var kBorrow = 2, splitP = -1;
+  function pw(n) { return Math.pow(2, n); }
+  function oc(n, k) { return (n >>> (24 - 8 * k)) & 255; }
+  function sup(n) { return '2<sup>' + n + '</sup>'; }
+  function plural(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }
+  function step(t, p, x, c) { return '<li><h3>' + t + '</h3><p>' + p + '</p>' + (x || '') + (c ? '<div class="calc">' + c + '</div>' : '') + '</li>'; }
+  function bitsHtml(p) { var a = '', i; for (i = 0; i < 32; i++) { if (i && i % 8 === 0) a += '.'; a += '<span class="' + (i < p ? 'n' : 'h') + '">' + (i < p ? 1 : 0) + '</span>'; } return a; }
+
+  function explain(ip, p, m, wild, net, bc, total, usable, first, last) {
+    var h = 32 - p, s = '', k, lines = [];
+
+    s += step('Split the 32 bits',
+      'An IPv4 address is 32 bits long. A <b>/' + p + '</b> prefix says the first ' + p + ' bits name the network, so the rest are host bits: 32 &minus; ' + p + ' = <b>' + h + '</b>.', '',
+      '<span class="n">' + p + ' network bits</span> + <span class="h">' + h + ' host bits</span> = 32');
+
+    var ladder = '<div class="ladder">';
+    for (k = 0; k <= h; k++) ladder += '<span class="rung' + (k === h ? ' on' : '') + '"><small>' + sup(k) + '</small>' + fmt(pw(k)) + '</span>';
+    ladder += '</div>';
+    s += step('Count the addresses with a power of two',
+      (h === 0
+        ? 'With no host bits there is only one combination, because any number to the power 0 is 1.'
+        : 'Each host bit can be 0 or 1. One bit gives 2 choices, two bits give 2 &times; 2 = 4, three give 2 &times; 2 &times; 2 = 8. With ' + plural(h, 'host bit') + ' you multiply 2 by itself ' + plural(h, 'time') + ', which is written <b>' + sup(h) + '</b>.') +
+      ' Each step up the ladder doubles the count, so every bit you move from host to network halves the block.',
+      ladder, sup(h) + ' = <b>' + fmt(total) + '</b> addresses');
+
+    var uText, uCalc;
+    if (p <= 30) { uText = 'The first address of a block names the subnet and the last is the broadcast address, so neither can go to a device. Usable hosts = total &minus; 2.'; uCalc = fmt(total) + ' &minus; 2 = <b>' + fmt(usable) + '</b> usable hosts'; }
+    else if (p === 31) { uText = 'A /31 has two addresses. On point-to-point links (RFC 3021) both are used, so there is no network or broadcast address to subtract.'; uCalc = '2 addresses, <b>2</b> usable'; }
+    else { uText = 'A /32 is one address, used for a single host, a loopback or a router ID.'; uCalc = '1 address, <b>1</b> usable'; }
+    s += step('Take out the network and broadcast addresses', uText, '', uCalc);
+
+    for (k = 0; k < 4; k++) {
+      var on = Math.max(0, Math.min(8, p - 8 * k));
+      lines.push('Octet ' + (k + 1) + ': ' + plural(on, 'network bit') + ' &rarr; 256 &minus; ' + sup(8 - on) + ' = 256 &minus; ' + pw(8 - on) + ' = <b>' + (256 - pw(8 - on)) + '</b>');
+    }
+    s += step('Turn the prefix into a netmask',
+      'A netmask is ' + p + ' ones followed by ' + h + ' zeros. A full octet of eight ones is 255, and an octet with j ones is worth 256 &minus; 2<sup>8&minus;j</sup>. The wildcard mask is the opposite: subtract each octet from 255.', '',
+      '<div>' + bitsHtml(p) + '</div>' + lines.join('<br>') + '<br>Netmask <b>' + toIp(m) + '</b> &nbsp;&middot;&nbsp; Wildcard <b>' + toIp(wild) + '</b>');
+
+    var nl = [], shortcut;
+    for (k = 0; k < 4; k++) nl.push('Octet ' + (k + 1) + ': ' + oc(ip, k) + ' AND ' + oc(m, k) + ' = <b>' + oc(net, k) + '</b>');
+    if (p < 32) {
+      var ko = Math.floor(p / 8), j = p % 8, B = pw(8 - j), a = oc(ip, ko);
+      shortcut = '<p>Shortcut: only octet ' + (ko + 1) + ' can change. Its block size is ' + sup(8 - j) + ' = <b>' + B + '</b>, so the network starts at the nearest multiple of ' + B + ' at or below ' + a + ': floor(' + a + ' &divide; ' + B + ') &times; ' + B + ' = <b>' + (Math.floor(a / B) * B) + '</b>.</p>';
+    } else shortcut = '<p>All 32 bits are network bits, so the address does not change.</p>';
+    s += step('Find the network address',
+      'Line the address up with the mask and keep only the bits where the mask has a 1 (a bitwise AND). Octets under 255 keep their value; octets under a 0 mask become 0.',
+      shortcut, nl.join('<br>') + '<br>Network address <b>' + toIp(net) + '</b>');
+
+    var bText, bCalc;
+    if (p <= 30) {
+      bText = 'Set every host bit to 1. That is the network address plus ' + sup(h) + ' &minus; 1.';
+      bCalc = toIp(net) + ' + (' + fmt(total) + ' &minus; 1) = ' + toIp(net) + ' + ' + fmt(total - 1) + ' = <b>' + toIp(bc) + '</b><br>' + fmt(total - 1) + ' written as four octets is ' + toIp(wild) + ', the wildcard mask.';
+    } else if (p === 31) { bText = 'A /31 has no broadcast address. Its two addresses are both hosts.'; bCalc = toIp(net) + ' and <b>' + toIp(bc) + '</b>'; }
+    else { bText = 'A /32 has no broadcast address. The block is the single address.'; bCalc = '<b>' + toIp(net) + '</b>'; }
+    s += step('Find the broadcast address', bText, '', bCalc);
+
+    s += step('Read off the usable range',
+      p >= 31 ? 'With no network or broadcast address to skip, every address in the block is usable.' : 'The first usable host is the network address plus 1. The last is the broadcast address minus 1.', '',
+      '<b>' + toIp(first) + '</b> to <b>' + toIp(last) + '</b> &nbsp;(' + fmt(usable) + ' host' + (usable === 1 ? '' : 's') + ')');
+
+    $('#steps').innerHTML = s;
+    renderSplit();
+  }
+
+  function renderSplit() {
+    var p = state.p, sel = $('#split-k'), out = $('#split-out'), maxk = Math.min(8, 32 - p), net = (state.ip & mask(p)) >>> 0, i, opts = '';
+    if (maxk < 1) { sel.innerHTML = ''; sel.disabled = true; splitP = -1; out.innerHTML = '<p>A /32 is a single address, so there is nothing left to split.</p>'; return; }
+    sel.disabled = false;
+    if (kBorrow > maxk) kBorrow = maxk;
+    if (splitP !== p) {
+      for (i = 1; i <= maxk; i++) opts += '<option value="' + i + '">' + i + ' bit' + (i === 1 ? '' : 's') + ' &rarr; /' + (p + i) + '</option>';
+      sel.innerHTML = opts; splitP = p;
+    }
+    sel.value = kBorrow;
+    var np = p + kBorrow, n = pw(kBorrow), size = pw(32 - np), us = np === 32 ? 1 : np === 31 ? 2 : size - 2, rows = '', show = Math.min(n, 8);
+    for (i = 0; i < show; i++) {
+      var a = net + i * size, b = a + size - 1;
+      rows += '<tr><td>' + (i + 1) + '</td><td>' + toIp(a) + '/' + np + '</td><td>' + (np >= 31 ? (np === 31 ? toIp(a) + ' &ndash; ' + toIp(b) : toIp(a)) : toIp(a + 1) + ' &ndash; ' + toIp(b - 1)) + '</td><td>' + (np >= 31 ? 'none' : toIp(b)) + '</td></tr>';
+    }
+    out.innerHTML =
+      '<p>Borrowing ' + plural(kBorrow, 'bit') + ' from the host side turns /' + p + ' into /' + np + '. Each borrowed bit can be 0 or 1, so you get ' + sup(kBorrow) + ' = <b>' + fmt(n) + '</b> subnets. Each keeps 32 &minus; ' + np + ' = ' + (32 - np) + ' host bits, so ' + sup(32 - np) + ' = <b>' + fmt(size) + '</b> addresses (' + fmt(us) + ' usable).</p>' +
+      '<div class="calc">' + fmt(n) + ' subnets &times; ' + fmt(size) + ' addresses = ' + fmt(n * size) + ' = ' + sup(32 - p) + ', the original /' + p + '<br>Subnet size is also the step between networks: each starts ' + fmt(size) + ' addresses after the last.</div>' +
+      '<div class="tblw"><table><thead><tr><th>#</th><th>Subnet</th><th>Usable range</th><th>Broadcast</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      (n > show ? '<p>Showing the first ' + show + ' of ' + fmt(n) + ' subnets.</p>' : '');
+  }
+
+  function renderNeed() {
+    var v = $('#need-n').value.trim(), out = $('#need-out'), N = /^\d{1,10}$/.test(v) ? +v : NaN, h, j, lines = [];
+    if (!(N >= 1 && N <= 4294967294)) { out.innerHTML = '<p>Enter a number of hosts from 1 to 4,294,967,294.</p>'; return; }
+    h = 2; while (pw(h) - 2 < N) h++;
+    for (j = Math.max(2, h - 1); j <= h; j++) {
+      var u = pw(j) - 2;
+      lines.push(sup(j) + ' &minus; 2 = ' + fmt(u) + (u >= N ? ' &ge; ' + fmt(N) + ' &nbsp;<b>fits</b>' : ' &lt; ' + fmt(N) + ' &nbsp;too small'));
+    }
+    out.innerHTML =
+      '<p>Try host bits upward until ' + sup('h') + ' &minus; 2 is at least ' + fmt(N) + '. The prefix is then 32 minus those host bits.</p>' +
+      '<div class="calc">' + lines.join('<br>') + '<br>Host bits = ' + h + ', so prefix = 32 &minus; ' + h + ' = <b>/' + (32 - h) + '</b> &nbsp;(netmask ' + toIp(mask(32 - h)) + ', ' + fmt(pw(h) - 2) + ' usable)</div>' +
+      (N <= 2 ? '<p>For one or two devices on a point-to-point link, a /31 (both addresses usable) or a /32 (single host) is the exception to the minus-2 rule.</p>' : '');
+  }
+
+  $('#split-k').addEventListener('change', function () { kBorrow = +this.value; renderSplit(); });
+  $('#need-n').addEventListener('input', renderNeed);
+  renderNeed();
+
+  var q0 = ''; try { q0 = (window.NK && NK.getParam) ? NK.getParam('q') : ''; } catch (e) { /* ignore */ }
+  if (q0 && fromText(q0) === '') { inp.value = q0; } else { render(); }
+})();
+</script><section class="article"><h2>What is CIDR notation?</h2>
+<p>CIDR (Classless Inter-Domain Routing) writes an IP network as an address followed by a slash and a number, such as <code>192.168.1.0/24</code>. The number is the <strong>prefix length</strong>: how many of the 32 bits in an IPv4 address identify the network. The remaining bits identify individual hosts. The viewer above colours the two groups so you can see exactly where the boundary sits.</p>
+<h2>Why subnet sizes are powers of two</h2>
+<p>Every host bit can be 0 or 1, so a block with <em>h</em> host bits contains 2<sup>h</sup> addresses. A /24 has 8 host bits and 2<sup>8</sup> = 256 addresses; a /26 has 6 and 2<sup>6</sup> = 64. Moving the boundary one bit to the right halves the block, and one bit to the left doubles it. The step-by-step section above shows the same working for whatever block you enter.</p>
+<h2>What you can do with the other tools</h2>
+<ul>
+<li><a href="/cidr-calculator/">CIDR calculator</a>: IPv4 and IPv6, wildcard masks, membership checks and subnet splitting.</li>
+<li><a href="/what-is-my-ip/">What is my IP</a>: public address, ISP, ASN and location.</li>
+<li><a href="/dns-lookup/">DNS lookup</a>: any record type through Cloudflare or Google, with a compare mode.</li>
+<li><a href="/bgp-asn-lookup/">BGP and ASN lookup</a>: prefixes, neighbours and RPKI status.</li>
+<li><a href="/subnet-chart/">Subnet chart</a>, <a href="/port-numbers/">port numbers</a>, <a href="/ip-converter/">IP converter</a> and <a href="/bandwidth-calculator/">bandwidth calculator</a>.</li>
+</ul>
+<h2>Frequently asked questions</h2>
+<details><summary>What does /24 mean?</summary><p>The first 24 bits identify the network and the last 8 identify hosts. That gives 256 addresses, of which 254 are usable because the first is the network address and the last is the broadcast address. The netmask is 255.255.255.0.</p></details>
+<details><summary>How many usable hosts are in a /26?</summary><p>A /26 has 6 host bits, so 2<sup>6</sup> = 64 addresses and 62 usable hosts. The netmask is 255.255.255.192.</p></details>
+<details><summary>What is the difference between a prefix length and a subnet mask?</summary><p>They describe the same thing. A /26 prefix and the mask 255.255.255.192 both say that the first 26 bits are the network. The wildcard mask, used in Cisco ACLs, is the inverse: 0.0.0.63.</p></details>
+<details><summary>Does this viewer support IPv6?</summary><p>The bit view is IPv4 only. The <a href="/cidr-calculator/">CIDR calculator</a> handles IPv6 prefixes, including how many /64 subnets fit inside a block.</p></details>
+<details><summary>Can I share a block with a colleague?</summary><p>Yes. After you change the block, the page address updates, so you can copy the URL and the other person will see the same block.</p></details></section></div></div></div></main>
+<footer class="site-footer"><div class="wrap">
+<div class="cols">
+<div><h4>NetKit</h4><p>Free online tools for network engineers. Calculators run in your browser; lookups use public APIs.</p></div>
+<div><h4>Tools</h4><ul><li><a href="/what-is-my-ip/">My IP</a></li><li><a href="/cidr-calculator/">CIDR Calculator</a></li><li><a href="/dns-lookup/">DNS Lookup</a></li><li><a href="/bgp-asn-lookup/">BGP / ASN</a></li><li><a href="/subnet-chart/">Subnet Chart</a></li><li><a href="/port-numbers/">Port Numbers</a></li><li><a href="/ip-converter/">IP Converter</a></li><li><a href="/bandwidth-calculator/">Bandwidth Calc</a></li></ul></div>
+<div><h4>Company</h4><ul><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+</div>
+<p class="fine">&copy; 2026 NetKit. Results are provided for information only; verify before using them in production changes.</p>
+</div></footer>
+</body>
+</html>

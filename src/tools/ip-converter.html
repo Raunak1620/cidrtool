@@ -1,0 +1,95 @@
+---
+slug: ip-converter
+order: 7
+title: IP Address Converter – Decimal, Hex, Binary and IPv6
+description: Convert IPv4 addresses between dotted decimal, integer, hexadecimal, binary and octal. Expand or compress IPv6 and get reverse DNS names, 6to4 and IPv4-mapped forms.
+h1: IP Address Converter
+nav: IP Converter
+lead: Convert an IPv4 address between dotted decimal, integer, hex, binary and octal, or expand and compress IPv6 and generate PTR names.
+glyph: 0x
+card: IPv4 to decimal, hex, binary and octal. IPv6 expand, compress and PTR names.
+related: cidr-calculator, subnet-chart, dns-lookup
+keywords: ip to decimal hex binary octal ipv6 expand compress ptr reverse dns
+---
+<div class="tool">
+  <form id="conv-form" class="inline-form" autocomplete="off" novalidate>
+    <label class="sr-only" for="conv-in">IP address in any format</label>
+    <input id="conv-in" type="text" placeholder="192.168.1.1 · 3232235777 · 0xC0A80101 · 2001:db8::1" spellcheck="false" autocapitalize="off">
+    <button class="btn" type="submit">Convert</button>
+  </form>
+  <div class="chips"><span class="muted">Try:</span>
+    <button type="button" class="chip" data-ex="192.168.1.1">192.168.1.1</button>
+    <button type="button" class="chip" data-ex="3232235777">3232235777</button>
+    <button type="button" class="chip" data-ex="0x08080808">0x08080808</button>
+    <button type="button" class="chip" data-ex="2001:0db8:0000:0000:0000:0000:0000:0001">2001:0db8:…:0001</button>
+    <button type="button" class="chip" data-ex="::ffff:192.0.2.128">::ffff:192.0.2.128</button>
+  </div>
+  <div class="out" id="conv-out" aria-live="polite"></div>
+</div>
+<script>
+(function () {
+  var inp = NK.$('#conv-in'), out = NK.$('#conv-out');
+  function r(k, v) { return '<div><dt>' + NK.esc(k) + '</dt><dd class="mono copyable">' + NK.esc(v) + '</dd></div>'; }
+
+  function v4(a) {
+    var n = a.n, oct = [n >>> 24, (n >>> 16) & 255, (n >>> 8) & 255, n & 255], kind = NK.ipv4Kind(n, 32);
+    var hex8 = n.toString(16).toUpperCase(); while (hex8.length < 8) hex8 = '0' + hex8;
+    var mapped = (0xffffn << 32n) | BigInt(n), sixto4 = (0x2002n << 112n) | (BigInt(n) << 80n);
+    var h = '<p class="muted">Detected input: ' + NK.esc(a.from) + '</p><dl class="kv">';
+    h += r('Dotted decimal', NK.intToIpv4(n)) + r('Decimal integer', String(n));
+    h += r('Hexadecimal', '0x' + hex8) + r('Dotted hexadecimal', oct.map(function (o) { return '0x' + ('0' + o.toString(16).toUpperCase()).slice(-2); }).join('.'));
+    h += r('Binary (dotted)', NK.toDottedBinary(n)) + r('Binary (32 bits)', NK.toDottedBinary(n).replace(/\./g, ''));
+    h += r('Octal integer', '0' + n.toString(8)) + r('Dotted octal', oct.map(function (o) { return '0' + o.toString(8); }).join('.'));
+    h += r('IPv4-mapped IPv6', '::ffff:' + NK.intToIpv4(n)) + r('IPv4-mapped (hex form)', NK.formatIpv6(mapped));
+    h += r('6to4 prefix', NK.formatIpv6(sixto4) + '/48') + r('Reverse DNS (PTR) name', NK.ptrName4(n));
+    h += r('Type / scope', kind.label + (kind.rfc ? ' (' + kind.rfc + ')' : '')) + r('Address class', NK.ipv4Class(n));
+    out.innerHTML = h + '</dl><div class="legend">Click any value to copy it.</div>';
+  }
+
+  function v6(n) {
+    var bits = NK.formatIpv6(n, true).split(':').map(function (g) { var b = parseInt(g, 16).toString(2); while (b.length < 16) b = '0' + b; return b; }).join(' ');
+    var h = '<p class="muted">Detected input: IPv6 address</p><dl class="kv">';
+    h += r('Compressed', NK.formatIpv6(n)) + r('Expanded', NK.formatIpv6(n, true));
+    h += r('Decimal integer', n.toString()) + r('Hexadecimal', '0x' + n.toString(16).padStart(32, '0'));
+    h += r('Binary (by 16-bit group)', bits);
+    h += r('Reverse DNS (PTR) name', NK.ptrName6(n)) + r('Type', NK.ipv6Kind(n));
+    if ((n >> 32n) === 0xffffn) h += r('Embedded IPv4 (mapped)', NK.intToIpv4(Number(n & 0xffffffffn)));
+    h += r('Solicited-node multicast', NK.formatIpv6(0xff0200000000000000000001ff000000n | (n & 0xffffffn)));
+    out.innerHTML = h + '</dl><div class="legend">Click any value to copy it.</div>';
+  }
+
+  function run(v) {
+    v = (v || '').trim();
+    if (!v) { out.innerHTML = ''; return; }
+    var a = NK.parseAnyIpv4(v);
+    if (a) { NK.setParams({ q: v }); return v4(a); }
+    var n = NK.parseIpv6(v);
+    if (n !== null) { NK.setParams({ q: v }); return v6(n); }
+    out.innerHTML = '<div class="alert err">Could not recognise that as an IPv4 or IPv6 address. Accepted IPv4 forms: dotted decimal, decimal integer, <code>0x</code> hex, 32-bit binary and dotted binary.</div>';
+  }
+  NK.$('#conv-form').addEventListener('submit', function (e) { e.preventDefault(); run(inp.value); });
+  NK.$$('.chip[data-ex]').forEach(function (b) { b.addEventListener('click', function () { inp.value = b.getAttribute('data-ex'); run(inp.value); }); });
+  var pre = NK.getParam('q'); if (pre) { inp.value = pre; run(pre); }
+})();
+</script>
+<!--ARTICLE-->
+<h2>Why convert IP addresses?</h2>
+<p>An IPv4 address is just a 32-bit number. Dotted decimal is the friendly way to write it, but other forms show up in logs, databases, packet captures, firewall rules and exploit write-ups. Databases often store addresses as integers because ranges become simple numeric comparisons. Packet captures show hexadecimal. Binary makes subnet boundaries visible.</p>
+
+<h2>How the conversion works</h2>
+<p>Each octet is a byte, so <code>192.168.1.1</code> equals 192 × 256³ + 168 × 256² + 1 × 256 + 1 = <strong>3232235777</strong>. In hexadecimal that is <code>0xC0A80101</code>, and in binary <code>11000000.10101000.00000001.00000001</code>. The converter accepts any of these and shows all of them.</p>
+
+<h2>IPv6 forms</h2>
+<p>IPv6 addresses can be written in full (<code>2001:0db8:0000:0000:0000:0000:0000:0001</code>) or compressed by dropping leading zeros in each group and replacing the longest run of zero groups with <code>::</code> (<code>2001:db8::1</code>). Both mean the same address. The tool also shows the integer value, the binary groups and the <code>ip6.arpa</code> name used for reverse DNS.</p>
+
+<h2>Special representations</h2>
+<ul>
+<li><strong>IPv4-mapped IPv6</strong> (<code>::ffff:a.b.c.d</code>): how dual-stack sockets represent IPv4 clients.</li>
+<li><strong>6to4</strong>: embeds an IPv4 address in the <code>2002::/16</code> prefix for automatic tunnelling.</li>
+<li><strong>Solicited-node multicast</strong>: the multicast address used by IPv6 neighbour discovery, built from the last 24 bits of a unicast address.</li>
+</ul>
+
+<h2>Frequently asked questions</h2>
+<details><summary>How do I convert an IP address to a decimal number?</summary><p>Multiply the octets by 256³, 256², 256 and 1 and add them. Or paste the address above and copy the decimal integer.</p></details>
+<details><summary>Why does 127.1 or 0177.0.0.1 sometimes work in a browser?</summary><p>Some software accepts shortened or octal forms. These are ambiguous and are sometimes abused to bypass filters, so this tool only accepts the unambiguous formats.</p></details>
+<details><summary>How do I write a reverse DNS name?</summary><p>For IPv4, reverse the octets and append <code>.in-addr.arpa</code>. For IPv6, reverse the 32 hex digits, separate each with a dot and append <code>.ip6.arpa</code>. The converter generates both.</p></details>
