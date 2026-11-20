@@ -35,6 +35,7 @@ if PUB:
         PUB = "ca-pub-" + PUB
     elif PUB.startswith("pub-"):
         PUB = "ca-" + PUB
+GSC = CFG.get("google_site_verification", "").strip()
 SLOTS = CFG["adsense"].get("slots", {})
 HAS_ASIDE = bool(PUB and SLOTS.get("sidebar", "").strip())
 
@@ -204,6 +205,7 @@ def layout(*, title, desc, path, h1="", lead="", body="", hero="", jsonld=(), cr
             f'<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={PUB}" '
             'crossorigin="anonymous"></script>'
         )
+    verify = f'<meta name="google-site-verification" content="{e(GSC)}">' if GSC else ""
     robots = "noindex,follow" if noindex else "index,follow,max-image-preview:large"
     tabs = "".join(
         f'<a class="tab" href="/{t["slug"]}/"' + (' aria-current="page"' if path == f'/{t["slug"]}/' else "") + f'>{e(t["nav"])}</a>'
@@ -240,7 +242,7 @@ def layout(*, title, desc, path, h1="", lead="", body="", hero="", jsonld=(), cr
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <script>try{{var t=localStorage.getItem('nk-theme');if(t)document.documentElement.setAttribute('data-theme',t)}}catch(e){{}}</script>
 <link rel="stylesheet" href="/assets/css/style.css?v={CSS_V}">
-{adsense}{ld}
+{verify}{adsense}{ld}
 </head>
 <body>
 <header class="site-header"><div class="wrap">
@@ -498,6 +500,9 @@ def main():
         shutil.rmtree(DIST)
     DIST.mkdir()
     shutil.copytree(SRC / "assets", DIST / "assets")
+    if (SRC / "root").exists():
+        for f in (SRC / "root").iterdir():
+            shutil.copy2(f, DIST / f.name)
     tools = load_tools()
     for t in tools:
         build_tool(t, tools)

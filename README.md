@@ -18,6 +18,7 @@ A static website (no backend, no database) with a CIDR visualizer home page, 8 t
 Edit `config.json`:
 - `domain` and `contact_email` (used in canonical URLs, sitemap, privacy policy, contact page)
 - `site_name` if you want a different brand
+- `google_site_verification` (Search Console meta tag token). Files in `src/root/` are copied to the site root (used for the Search Console HTML file)
 - `adsense.publisher_id` and the three slot IDs, **after** AdSense approves you (see below)
 
 ## 2. Build
