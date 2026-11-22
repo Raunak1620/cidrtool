@@ -1,0 +1,79 @@
+---
+slug: vlsm-tutorial
+title: VLSM Tutorial: How to Plan Variable Length Subnets
+description: A step-by-step VLSM tutorial. Learn to allocate variable length subnets from one address block, with a worked example that fits four segments into a /24.
+h1: VLSM Tutorial
+lead: Variable length subnet masks let you size each subnet to its need. This tutorial shows the method and a worked example that fits four segments into one /24.
+related: vlsm-calculator, cidr-calculator, route-summarization
+guides: how-subnetting-works, how-many-hosts-in-a-subnet, common-subnet-sizes-and-when-to-use-them
+updated: 2026-11-21
+---
+<p>VLSM, variable length subnet masks, means using different prefix lengths inside one address block. Instead of giving every segment the same size, you give each one the smallest subnet that fits its hosts. The method is to sort the requirements from largest to smallest and then assign subnets one after another from the start of the block.</p>
+
+<h2>Why use VLSM</h2>
+<p>Equal-sized subnets waste addresses. If one department has 60 devices and a WAN link has 2, giving both a /26 leaves the link with 62 unused addresses. VLSM lets the link use a /30 and keeps the rest of the block free for other networks. It also makes address plans easier to summarize, because you control where each block starts.</p>
+<p>VLSM needs a routing protocol that carries the mask with each route. OSPF, EIGRP, IS-IS, BGP and RIPv2 do. Classful protocols such as RIPv1 do not.</p>
+
+<h2>The method</h2>
+<ol>
+<li><strong>List every subnet you need</strong> with its number of hosts. Include point-to-point links.</li>
+<li><strong>Work out the prefix for each one.</strong> Find the smallest <em>h</em> where 2<sup><em>h</em></sup> &minus; 2 is at least the host count. The prefix is 32 &minus; <em>h</em>. The <a href="/guides/how-many-hosts-in-a-subnet/">host count guide</a> explains this step in detail.</li>
+<li><strong>Sort the list from largest subnet to smallest.</strong></li>
+<li><strong>Assign the first subnet at the start of the address block.</strong> Each next subnet starts at the address after the previous one ends.</li>
+<li><strong>Record what is left.</strong> The unused space after the last subnet is available for growth or new networks.</li>
+</ol>
+
+<h2>Worked example</h2>
+<p>You have 192.168.10.0/24 and need four networks:</p>
+<ul>
+<li>Sales: 60 hosts</li>
+<li>Engineering: 28 hosts</li>
+<li>Management: 10 hosts</li>
+<li>WAN link between two routers: 2 hosts</li>
+</ul>
+<h3>Step 1: find the prefix for each network</h3>
+<div class="table-wrap"><table class="data">
+<thead><tr><th>Network</th><th>Hosts needed</th><th>Smallest fit</th><th>Prefix</th></tr></thead>
+<tbody>
+<tr><td>Sales</td><td>60</td><td>2<sup>6</sup> &minus; 2 = 62</td><td>/26</td></tr>
+<tr><td>Engineering</td><td>28</td><td>2<sup>5</sup> &minus; 2 = 30</td><td>/27</td></tr>
+<tr><td>Management</td><td>10</td><td>2<sup>4</sup> &minus; 2 = 14</td><td>/28</td></tr>
+<tr><td>WAN link</td><td>2</td><td>2<sup>2</sup> &minus; 2 = 2</td><td>/30</td></tr>
+</tbody></table></div>
+<p>The list is already in order from largest to smallest.</p>
+<h3>Step 2: assign the subnets in order</h3>
+<div class="table-wrap"><table class="data">
+<thead><tr><th>Network</th><th>Subnet</th><th>Mask</th><th>Usable range</th><th>Broadcast</th><th>Spare</th></tr></thead>
+<tbody>
+<tr><td>Sales</td><td>192.168.10.0/26</td><td>255.255.255.192</td><td>192.168.10.1 to 192.168.10.62</td><td>192.168.10.63</td><td>2</td></tr>
+<tr><td>Engineering</td><td>192.168.10.64/27</td><td>255.255.255.224</td><td>192.168.10.65 to 192.168.10.94</td><td>192.168.10.95</td><td>2</td></tr>
+<tr><td>Management</td><td>192.168.10.96/28</td><td>255.255.255.240</td><td>192.168.10.97 to 192.168.10.110</td><td>192.168.10.111</td><td>4</td></tr>
+<tr><td>WAN link</td><td>192.168.10.112/30</td><td>255.255.255.252</td><td>192.168.10.113 to 192.168.10.114</td><td>192.168.10.115</td><td>0</td></tr>
+</tbody></table></div>
+<p>Each subnet begins right after the previous one. Sales takes 64 addresses (.0 to .63), so Engineering starts at .64. Engineering takes 32 (.64 to .95), so Management starts at .96. Management takes 16 (.96 to .111), so the WAN link starts at .112 and takes 4 (.112 to .115).</p>
+<h3>Step 3: record the free space</h3>
+<p>The four subnets use 64 + 32 + 16 + 4 = 116 addresses. The block from 192.168.10.116 to 192.168.10.255 is still free. That is 140 addresses. The next WAN link, if you add one, would be 192.168.10.116/30 with usable addresses .117 and .118 and broadcast .119.</p>
+<p>For comparison, if all four networks had used a /26, the plan would use all 256 addresses of the /24 and leave nothing for growth. You can reproduce this plan, or enter your own requirements, in the <a href="/vlsm-calculator/">VLSM calculator</a>.</p>
+
+<h2>Why you allocate the largest subnet first</h2>
+<p>A subnet must start on a multiple of its own size. A /26 must start at .0, .64, .128 or .192. If you place small subnets first, you can force a larger one to skip ahead and strand addresses.</p>
+<p>Suppose you put the WAN link first at 192.168.10.0/30, which uses .0 to .3. The Sales /26 cannot start at .4. The next valid start is .64. The addresses from .4 to .63, which are 60 addresses, would sit unused unless you filled them with other small subnets. Placing the largest block first means every later block lands on a valid boundary without gaps.</p>
+
+<h2>Point-to-point links and /31</h2>
+<p>The example uses a /30 for the WAN link, the traditional choice. If both devices support RFC 3021, a /31 gives the same two usable addresses using half the space. That saves 2 addresses per link, which adds up on a network with many links. Use it only where you have confirmed support on both ends.</p>
+
+<h2>Tips for a plan that lasts</h2>
+<ul>
+<li><strong>Add headroom.</strong> Size each subnet for the number of hosts you expect later, not only the count today.</li>
+<li><strong>Keep related subnets together.</strong> Subnets for one site or one function that sit in one contiguous block can be summarized into a single route. The <a href="/guides/cidr-notation-explained/">CIDR notation guide</a> explains the alignment rules.</li>
+<li><strong>Reserve space deliberately.</strong> Leave a documented gap for future subnets rather than filling the block to the last address.</li>
+<li><strong>Check for overlaps.</strong> Two subnets must never share an address. Sorting by size and allocating in sequence avoids this.</li>
+<li><strong>Document the plan.</strong> Record the subnet, mask, purpose and gateway for each entry.</li>
+</ul>
+<p>To practise sizing subnets from a host count, try the <a href="/vlsm-calculator/">VLSM calculator</a>.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>What does VLSM stand for?</summary><p>Variable length subnet masks. It means using more than one prefix length inside the same address block, so each subnet can be sized for its own needs.</p></details>
+<details><summary>Is VLSM the same as CIDR?</summary><p>No, but they are related. CIDR is the classless addressing and routing model that lets prefixes be any length. VLSM is the practice of using different prefix lengths inside one network when you subnet it.</p></details>
+<details><summary>Why start with the largest subnet?</summary><p>Because each subnet must begin on a boundary that is a multiple of its size. Allocating the largest first keeps the pointer aligned for every smaller subnet and avoids unusable gaps.</p></details>
+<details><summary>Does my routing protocol need to support VLSM?</summary><p>Yes. OSPF, EIGRP, IS-IS, BGP and RIPv2 carry the subnet mask in each route and work with VLSM. RIPv1 is classful and does not.</p></details>

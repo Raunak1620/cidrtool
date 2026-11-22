@@ -1,0 +1,45 @@
+---
+slug: bandwidth-delay-product-and-tcp-throughput
+title: Bandwidth-Delay Product and TCP Throughput Explained
+description: Why a fast link can still give slow transfers. Learn the bandwidth-delay product, how the TCP window limits throughput, and how to calculate the window you need.
+h1: Bandwidth-Delay Product and TCP Throughput
+lead: A fast link does not guarantee a fast transfer. Latency and window size set the real limit, and this guide shows how to calculate it.
+related: bandwidth-calculator, what-is-my-ip, port-numbers
+guides: dns-record-types-explained, bgp-asn-rpki-explained
+updated: 2026-11-22
+---
+<p>When a file copy over a 1 Gbps WAN link only reaches 10 Mbps, the link is rarely the problem. The cause is usually the interaction between TCP and round-trip time.</p>
+
+<h2>The bandwidth-delay product</h2>
+<p>The bandwidth-delay product (BDP) is the amount of data that is "in flight" on a path at any moment:</p>
+<pre class="code">BDP (bits) = bandwidth (bits per second) &times; round-trip time (seconds)</pre>
+<p>For a 1 Gbps link with a 50 ms round-trip time: 1,000,000,000 &times; 0.05 = 50,000,000 bits, which is 6,250,000 bytes, about 6.25 MB. To keep that link full, the sender must be able to have 6.25 MB of unacknowledged data outstanding.</p>
+
+<h2>How the TCP window limits speed</h2>
+<p>TCP will not send more than the receive window of unacknowledged data. So the maximum throughput of one connection is:</p>
+<pre class="code">throughput &le; window size &divide; round-trip time</pre>
+<p>Without window scaling, the TCP window field is 16 bits, so the largest window is 65,535 bytes. On the same 50 ms path: 65,535 &times; 8 = 524,280 bits, divided by 0.05 s gives about 10.5 Mbps. That matches the symptom above: the 1 Gbps link is idle most of the time.</p>
+
+<h2>More examples</h2>
+<div class="table-wrap"><table class="data"><thead><tr><th>Link</th><th>RTT</th><th>BDP</th></tr></thead><tbody>
+<tr><td>100 Mbps</td><td>20 ms</td><td>250,000 bytes (about 244 KiB)</td></tr>
+<tr><td>1 Gbps</td><td>50 ms</td><td>6,250,000 bytes (about 6.25 MB)</td></tr>
+<tr><td>10 Gbps</td><td>100 ms</td><td>125,000,000 bytes (125 MB)</td></tr>
+</tbody></table></div>
+
+<h2>How to fix it</h2>
+<ul>
+<li><strong>Window scaling</strong> (RFC 7323) lets TCP advertise windows far above 64 KB. Modern operating systems enable it by default, but firewalls or middleboxes that strip TCP options can disable it.</li>
+<li><strong>Larger buffers.</strong> Socket buffers must be at least the BDP. On Linux, the <code>net.ipv4.tcp_rmem</code> and <code>tcp_wmem</code> settings cap how large the window can grow.</li>
+<li><strong>Parallel connections</strong> multiply the achievable throughput, which is why download tools open several streams.</li>
+<li><strong>Reduce RTT</strong> with a closer server, a CDN, or WAN acceleration.</li>
+<li><strong>Loss matters too.</strong> Even a small packet loss rate cuts throughput sharply on long paths, and the loss-based congestion control in classic TCP reacts strongly to it.</li>
+</ul>
+
+<h2>Measuring it</h2>
+<p>Measure RTT with <code>ping</code> and run a transfer test such as <code>iperf3</code> with a single stream, then with several, to see whether the window is the bottleneck. Use the <a href="/bandwidth-calculator/">bandwidth calculator</a> to convert between units and estimate transfer times.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>Does a faster link fix slow long-distance transfers?</summary><p>Not by itself. If the window is the limit, throughput stays the same however fast the link is.</p></details>
+<details><summary>Is the BDP counted in bits or bytes?</summary><p>Bandwidth is in bits per second, so the result is in bits. Divide by 8 to get bytes, which is what buffer sizes are measured in.</p></details>
+<details><summary>What RTT should I use?</summary><p>The full round trip between the two hosts, as measured by ping, not the one-way delay.</p></details>

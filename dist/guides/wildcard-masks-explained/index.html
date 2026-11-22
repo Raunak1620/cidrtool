@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wildcard Masks Explained: How They Work in Cisco ACLs and OSPF | NetKit</title>
+<meta name="description" content="Learn what a wildcard mask is, how to calculate one from a subnet mask, and how to use it in Cisco ACLs and OSPF network statements, with worked examples.">
+<link rel="canonical" href="https://ipsubnetcalculatorcidr.vercel.app/guides/wildcard-masks-explained/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NetKit">
+<meta property="og:title" content="Wildcard Masks Explained: How They Work in Cisco ACLs and OSPF | NetKit">
+<meta property="og:description" content="Learn what a wildcard mask is, how to calculate one from a subnet mask, and how to use it in Cisco ACLs and OSPF network statements, with worked examples.">
+<meta property="og:url" content="https://ipsubnetcalculatorcidr.vercel.app/guides/wildcard-masks-explained/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0b6bde">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem('nk-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="stylesheet" href="/assets/css/style.css?v=858db731">
+<meta name="google-site-verification" content="oRgN_HmHnESYTVTZSc6DEeby8Fb9GwQx34rpckJhfDA"><meta name="google-adsense-account" content="ca-pub-2676656110030246"><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2676656110030246" crossorigin="anonymous"></script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Wildcard Masks Explained", "description": "Learn what a wildcard mask is, how to calculate one from a subnet mask, and how to use it in Cisco ACLs and OSPF network statements, with worked examples.", "datePublished": "2026-11-22", "dateModified": "2026-11-22", "mainEntityOfPage": "https://ipsubnetcalculatorcidr.vercel.app/guides/wildcard-masks-explained/", "author": {"@type": "Organization", "name": "NetKit"}, "publisher": {"@type": "Organization", "name": "NetKit"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://ipsubnetcalculatorcidr.vercel.app/"}, {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://ipsubnetcalculatorcidr.vercel.app/guides/"}, {"@type": "ListItem", "position": 3, "name": "Wildcard Masks Explained", "item": "https://ipsubnetcalculatorcidr.vercel.app/guides/wildcard-masks-explained/"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is the wildcard mask for 255.255.255.0?", "acceptedAnswer": {"@type": "Answer", "text": "0.0.0.255."}}, {"@type": "Question", "name": "What is the wildcard mask for a /32?", "acceptedAnswer": {"@type": "Answer", "text": "0.0.0.0, which means all 32 bits must match, so it selects exactly one host."}}, {"@type": "Question", "name": "Is the wildcard mask the same as the inverse mask?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The terms are used interchangeably."}}, {"@type": "Question", "name": "Do newer Cisco platforms still use wildcard masks?", "acceptedAnswer": {"@type": "Answer", "text": "Classic IOS and IOS-XE ACLs and routing network statements do. Many newer platforms and NX-OS accept CIDR prefix lengths in ACLs as well."}}]}</script>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">/24</span>NetKit</a>
+<div class="header-actions"><button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">Theme</button></div>
+</div></header>
+<nav class="tabs" aria-label="Tools"><div class="wrap"><a class="tab" href="/what-is-my-ip/">My IP</a><a class="tab" href="/cidr-calculator/">CIDR Calculator</a><a class="tab" href="/dns-lookup/">DNS Lookup</a><a class="tab" href="/bgp-asn-lookup/">BGP / ASN</a><a class="tab" href="/subnet-chart/">Subnet Chart</a><a class="tab" href="/port-numbers/">Port Numbers</a><a class="tab" href="/ip-converter/">IP Converter</a><a class="tab" href="/bandwidth-calculator/">Bandwidth Calc</a><a class="tab" href="/wildcard-mask-calculator/">Wildcard Mask</a><a class="tab" href="/vlsm-calculator/">VLSM Calculator</a><a class="tab" href="/route-summarization/">Route Summary</a><a class="tab" href="/speed-test/">Speed Test</a><a class="tab" href="/latency-ping-test/">Ping Test</a><a class="tab" href="/traceroute-analyzer/">Traceroute</a><a class="tab" href="/open-port-checker/">Port Checker</a><a class="tab" href="/guides/" aria-current="page">Guides</a></div></nav>
+<script src="/assets/js/net.js?v=a6fe9476"></script>
+<script src="/assets/js/app.js?v=411fe5fd"></script>
+<main><div class="wrap"><div class="layout"><div class="content"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> &rsaquo; <a href="/guides/">Guides</a> &rsaquo; Wildcard Masks Explained</nav><h1>Wildcard Masks Explained</h1><p class="lead">A wildcard mask tells a router which bits of an address must match and which it can ignore. This guide shows how to calculate one and where you will use it.</p><section class="article" style="margin-top:8px"><p>A wildcard mask is a 32-bit pattern used by Cisco IOS in access lists and in the <code>network</code> command of OSPF and EIGRP. It works like a subnet mask turned upside down: a <strong>0 bit means the address bit must match</strong> and a <strong>1 bit means the bit is ignored</strong>.</p>
+
+<h2>Subnet mask versus wildcard mask</h2>
+<p>A subnet mask of <code>255.255.255.0</code> says "the first 24 bits are the network". The matching wildcard mask is <code>0.0.0.255</code>, which says "the first 24 bits must match, the last 8 can be anything". For any contiguous mask, the wildcard is the subnet mask subtracted from <code>255.255.255.255</code>.</p>
+
+<h2>How to calculate it</h2>
+<p>Subtract each octet of the subnet mask from 255.</p>
+<ul>
+<li>/24, 255.255.255.0 gives 0.0.0.255</li>
+<li>/26, 255.255.255.192 gives 0.0.0.63</li>
+<li>/20, 255.255.240.0 gives 0.0.15.255</li>
+<li>/30, 255.255.255.252 gives 0.0.0.3</li>
+</ul>
+<p>A shortcut: the last number of a wildcard is always the block size minus 1. A /26 has a block size of 64, so the wildcard is 63.</p>
+
+<h2>Using wildcard masks in an ACL</h2>
+<p>To permit the subnet 192.168.10.0/24 in a standard access list:</p>
+<pre class="code">access-list 10 permit 192.168.10.0 0.0.0.255</pre>
+<p>The router compares the first three octets of each packet's source address and ignores the last. To match a single host, use a wildcard of <code>0.0.0.0</code> or the keyword <code>host</code>. To match everything, use <code>0.0.0.0 255.255.255.255</code> or the keyword <code>any</code>.</p>
+
+<h2>Using them in OSPF</h2>
+<p>The <code>network</code> command decides which interfaces run OSPF. For an interface with address 10.1.2.5/24:</p>
+<pre class="code">router ospf 1
+ network 10.1.2.0 0.0.0.255 area 0</pre>
+<p>Any interface whose address falls inside 10.1.2.0/24 joins area 0. The mask only selects interfaces; the interface still advertises its own configured prefix length.</p>
+
+<h2>Non-contiguous wildcard masks</h2>
+<p>Wildcard masks are not required to be contiguous. The wildcard <code>0.0.0.254</code> ignores every bit of the last octet except the lowest, so with an address of 10.0.0.1 it matches every odd host address. Engineers occasionally use this to match several subnets in one ACL line, for example <code>172.16.0.0 0.0.254.255</code>. Use it with care, because the result is hard to read and easy to get wrong.</p>
+
+<h2>Where wildcard masks are not used</h2>
+<p>Juniper, Linux iptables, most firewalls and cloud security groups use CIDR notation such as <code>10.1.2.0/24</code>. If you move a rule from Cisco IOS to another platform, convert the wildcard mask to a prefix length by counting the 0 bits.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>What is the wildcard mask for 255.255.255.0?</summary><p>0.0.0.255.</p></details>
+<details><summary>What is the wildcard mask for a /32?</summary><p>0.0.0.0, which means all 32 bits must match, so it selects exactly one host.</p></details>
+<details><summary>Is the wildcard mask the same as the inverse mask?</summary><p>Yes. The terms are used interchangeably.</p></details>
+<details><summary>Do newer Cisco platforms still use wildcard masks?</summary><p>Classic IOS and IOS-XE ACLs and routing network statements do. Many newer platforms and NX-OS accept CIDR prefix lengths in ACLs as well.</p></details><p class="muted" style="margin-top:22px">Last updated November 22, 2026.</p></section><section class="related"><h2>Related tools</h2><div class="cards"><a class="card" href="/wildcard-mask-calculator/"><span class="glyph">wc</span><h3>Wildcard Mask</h3><p>Subnet mask, CIDR and wildcard conversion, ACL snippets and IP range to CIDR.</p></a><a class="card" href="/cidr-calculator/"><span class="glyph">/24</span><h3>CIDR Calculator</h3><p>Network, broadcast, usable range, wildcard and subnet splitting for IPv4 and IPv6.</p></a><a class="card" href="/route-summarization/"><span class="glyph">Σ</span><h3>Route Summary</h3><p>Aggregate prefixes into the fewest routes and find the covering summary route.</p></a></div></section><section class="related"><h2>Keep reading</h2><div class="cards"><a class="card" href="/guides/cidr-notation-explained/"><span class="glyph">Guide</span><h3>CIDR Notation Explained</h3><p>CIDR notation explained clearly: what the slash number means, why it replaced classful addressing, how route aggregation works and how routers pick the longest prefix.</p></a><a class="card" href="/guides/how-subnetting-works/"><span class="glyph">Guide</span><h3>How Subnetting Works</h3><p>Learn how subnetting works with a clear step-by-step method: network and host bits, subnet masks, block size and a fully worked example for 192.168.10.77/26.</p></a><a class="card" href="/guides/common-subnet-sizes-and-when-to-use-them/"><span class="glyph">Guide</span><h3>Common Subnet Sizes and When to Use Them</h3><p>A quick reference of common IPv4 subnet sizes from /16 to /32 with masks, address counts, usable hosts and the situations where each size is normally used.</p></a></div></section></div></div></div></main>
+<footer class="site-footer"><div class="wrap">
+<div class="cols">
+<div><h4>NetKit</h4><p>Free online tools for network engineers. Calculators run in your browser; lookups use public APIs.</p></div>
+<div><h4>Tools</h4><ul><li><a href="/what-is-my-ip/">My IP</a></li><li><a href="/cidr-calculator/">CIDR Calculator</a></li><li><a href="/dns-lookup/">DNS Lookup</a></li><li><a href="/bgp-asn-lookup/">BGP / ASN</a></li><li><a href="/subnet-chart/">Subnet Chart</a></li><li><a href="/port-numbers/">Port Numbers</a></li><li><a href="/ip-converter/">IP Converter</a></li><li><a href="/bandwidth-calculator/">Bandwidth Calc</a></li><li><a href="/wildcard-mask-calculator/">Wildcard Mask</a></li><li><a href="/vlsm-calculator/">VLSM Calculator</a></li><li><a href="/route-summarization/">Route Summary</a></li><li><a href="/speed-test/">Speed Test</a></li><li><a href="/latency-ping-test/">Ping Test</a></li><li><a href="/traceroute-analyzer/">Traceroute</a></li><li><a href="/open-port-checker/">Port Checker</a></li></ul></div>
+<div><h4>Company</h4><ul><li><a href="/guides/">Guides</a></li><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+</div>
+<p class="fine">&copy; 2026 NetKit. Results are provided for information only; verify before using them in production changes.</p>
+</div></footer>
+</body>
+</html>

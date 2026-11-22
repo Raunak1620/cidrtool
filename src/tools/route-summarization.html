@@ -1,0 +1,89 @@
+---
+slug: route-summarization
+order: 11
+title: Route Summarization Calculator: Summarize and Aggregate IP Prefixes
+description: Free route summarization (supernet) calculator. Paste a list of IPv4 prefixes to get the minimal aggregated routes, the single summary route and how many extra addresses it would cover.
+h1: Route Summarization Calculator
+nav: Route Summary
+lead: Paste a list of IPv4 networks. The calculator removes duplicates and overlaps, merges neighbouring blocks, and shows the single summary route that covers them all.
+glyph: Σ
+card: Aggregate prefixes into the fewest routes and find the covering summary route.
+related: cidr-calculator, wildcard-mask-calculator, vlsm-calculator
+keywords: route summarization supernet aggregate cidr ospf eigrp bgp summary route
+---
+<div class="tool">
+  <label class="label" for="rs-in">Networks (one per line, commas or spaces also work)</label>
+  <textarea id="rs-in" spellcheck="false" autocapitalize="off">192.168.0.0/24
+192.168.1.0/24
+192.168.2.0/24
+192.168.3.0/24</textarea>
+  <div class="row" style="margin-top:10px"><button class="btn" id="rs-go" type="button">Summarize</button>
+    <button class="btn secondary" id="rs-ex" type="button">Load an example with a gap</button></div>
+  <div class="out" id="rs-out" aria-live="polite"></div>
+</div>
+
+<script>
+(function () {
+  var f = NK.intToIpv4, inp = NK.$('#rs-in'), out = NK.$('#rs-out');
+  function cmd(title, t) { return '<h3 style="margin:16px 0 4px;font-size:1rem">' + NK.esc(title) + '</h3><pre class="code copyable" data-copy-text="' + NK.esc(t) + '">' + NK.esc(t) + '</pre>'; }
+  function run() {
+    var tokens = inp.value.split(/[\s,;]+/).filter(Boolean), items = [], bad = [];
+    tokens.forEach(function (t) {
+      var sp = NK.parseV4Spec(t);
+      if (!sp) { bad.push(t); return; }
+      var i = NK.cidr4Info(sp.ip, sp.prefix); items.push({ net: i.network, prefix: i.prefix, fixed: sp.ip !== i.network, raw: t });
+    });
+    var h = '';
+    if (bad.length) h += '<div class="alert err">Could not read: <code>' + bad.slice(0, 8).map(NK.esc).join('</code>, <code>') + '</code>' + (bad.length > 8 ? ' and ' + (bad.length - 8) + ' more' : '') + '</div>';
+    var fixed = items.filter(function (x) { return x.fixed; });
+    if (fixed.length) h += '<div class="alert note">Host bits were set in ' + fixed.length + ' entr' + (fixed.length === 1 ? 'y' : 'ies') + ' (for example <code>' + NK.esc(fixed[0].raw) + '</code>). They were rounded down to the network address.</div>';
+    if (!items.length) { out.innerHTML = h || ''; return; }
+    var r = NK.summarizeCidrs(items), s = r.supernet, mk = NK.prefixToMask(s.prefix), sz = Math.pow(2, 32 - s.prefix);
+    var rows = r.merged.map(function (c) { return '<tr><td class="mono copyable">' + f(c.net) + '/' + c.prefix + '</td><td class="mono">' + f(NK.prefixToMask(c.prefix)) + '</td><td>' + NK.fmtNum(Math.pow(2, 32 - c.prefix)) + '</td></tr>'; }).join('');
+    var exact = r.extra === 0;
+    h += '<p class="muted">' + items.length + ' network' + (items.length === 1 ? '' : 's') + ' entered, ' + r.merged.length + ' route' + (r.merged.length === 1 ? '' : 's') + ' after merging overlaps and neighbours (exactly the same addresses, nothing extra).</p>' +
+      '<div class="table-wrap"><table class="data"><thead><tr><th>Minimal route</th><th>Subnet mask</th><th>Addresses</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<h2 class="sub">Single summary route</h2><dl class="kv"><div><dt>Summary</dt><dd class="mono copyable"><strong>' + f(s.net) + '/' + s.prefix + '</strong></dd></div>' +
+      '<div><dt>Subnet mask</dt><dd class="mono">' + f(mk) + '</dd></div><div><dt>Wildcard mask</dt><dd class="mono">' + f((~mk) >>> 0) + '</dd></div>' +
+      '<div><dt>Addresses in the summary</dt><dd>' + NK.fmtNum(sz) + '</dd></div><div><dt>Addresses you listed</dt><dd>' + NK.fmtNum(r.covered) + '</dd></div>' +
+      '<div><dt>Extra addresses covered</dt><dd>' + NK.fmtNum(r.extra) + (exact ? ' (a perfect summary)' : ' (' + (r.extra / sz * 100).toFixed(1) + '% of the summary)') + '</dd></div></dl>';
+    h += exact ? '<div class="alert ok">This summary covers exactly the networks you listed, so it is safe to advertise.</div>'
+      : '<div class="alert note">The summary also covers ' + NK.fmtNum(r.extra) + ' addresses you did not list. Advertising it attracts traffic for those addresses too, and can create black holes if they are not reachable behind you. Use the minimal routes above if that matters, or add a discard (null) route for the summary.</div>';
+    var n = f(s.net), w = f((~mk) >>> 0);
+    h += cmd('Cisco IOS: static summary / discard route', 'ip route ' + n + ' ' + f(mk) + ' Null0') +
+      cmd('Cisco IOS: EIGRP summary on an interface', 'interface GigabitEthernet0/0\n ip summary-address eigrp 100 ' + n + ' ' + f(mk)) +
+      cmd('Cisco IOS: OSPF area range (on the ABR)', 'router ospf 1\n area 1 range ' + n + ' ' + f(mk)) +
+      cmd('Cisco IOS: BGP aggregate', 'router bgp 65000\n aggregate-address ' + n + ' ' + f(mk) + ' summary-only') +
+      cmd('Juniper: aggregate route', 'set routing-options aggregate route ' + n + '/' + s.prefix);
+    out.innerHTML = h; NK.setParams({ q: tokens.slice(0, 60).join(',') });
+  }
+  NK.$('#rs-go').addEventListener('click', run);
+  NK.$('#rs-ex').addEventListener('click', function () { inp.value = '10.0.0.0/24\n10.0.1.0/24\n10.0.2.0/24\n10.0.8.0/24'; run(); });
+  var q = NK.getParam('q'); if (q) inp.value = q.split(',').join('\n');
+  run();
+})();
+</script>
+<!--ARTICLE-->
+<h2>What is route summarization?</h2>
+<p>Route summarization, also called route aggregation or supernetting, replaces several specific routes with one shorter prefix that covers all of them. A router that learns four /24 networks from a branch can advertise one /22 instead. Routing tables get smaller, updates are sent less often, and a flapping subnet inside the summary no longer causes updates elsewhere in the network.</p>
+
+<h2>How the calculation works</h2>
+<ol>
+<li>Each prefix is converted to a start and end address.</li>
+<li>The ranges are sorted, and any that overlap or touch are merged. Duplicates and prefixes already inside a larger one disappear.</li>
+<li>Each merged range is turned back into the fewest aligned CIDR blocks. This is the exact, lossless result.</li>
+<li>The single summary route is the longest prefix that contains both the lowest and the highest address, which means the leading bits of the two addresses are the same.</li>
+</ol>
+
+<h2>Worked example</h2>
+<p>The four networks <code>192.168.0.0/24</code> to <code>192.168.3.0/24</code> differ only in the third octet, which runs from 0 to 3. That is the last two bits of that octet, so the first 22 bits are shared and the summary is <code>192.168.0.0/22</code>. It covers exactly the 1,024 addresses you listed.</p>
+<p>Now drop <code>192.168.3.0/24</code>. The three remaining networks still need a /22 to cover them in one route, but that /22 now includes 256 addresses that are not yours. The calculator shows that as extra addresses, and the minimal list is <code>192.168.0.0/23</code> plus <code>192.168.2.0/24</code>.</p>
+
+<h2>When summarization is a bad idea</h2>
+<p>A summary that covers addresses you do not own or cannot reach can send traffic into a black hole, and it can override a more specific, correct route from another path. Summarize at boundaries where you control the address plan, and give every site a block that lines up on a power of two so it summarizes cleanly. Plan this before you deploy, because renumbering later is painful.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>What is the difference between summarization and supernetting?</summary><p>They describe the same math. Supernetting is the term for combining classful or classless networks into a shorter prefix, and summarization is the routing term for advertising that combined prefix.</p></details>
+<details><summary>Why can't I summarize 10.0.1.0/24 and 10.0.2.0/24 into a /23?</summary><p>A /23 must start on an even third octet. 10.0.1.0/23 is not a valid network, because the containing /23 is 10.0.0.0/23. The two blocks sit in different /23s, so the smallest single prefix covering both is 10.0.0.0/22.</p></details>
+<details><summary>Does the summary replace the specific routes?</summary><p>That depends on the protocol. OSPF area range and BGP summary-only suppress the specifics. EIGRP summaries and static discard routes keep the specifics in the local table. Routers always prefer the longest matching prefix.</p></details>
+<details><summary>Is my list sent anywhere?</summary><p>No. The calculation runs in your browser.</p></details>

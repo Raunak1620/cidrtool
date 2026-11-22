@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BGP, ASNs and RPKI Explained for Network Engineers | NetKit</title>
+<meta name="description" content="What an autonomous system number is, how BGP uses it to exchange routes, how to read an AS path, and how RPKI route origin validation protects against route hijacks.">
+<link rel="canonical" href="https://ipsubnetcalculatorcidr.vercel.app/guides/bgp-asn-rpki-explained/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NetKit">
+<meta property="og:title" content="BGP, ASNs and RPKI Explained for Network Engineers | NetKit">
+<meta property="og:description" content="What an autonomous system number is, how BGP uses it to exchange routes, how to read an AS path, and how RPKI route origin validation protects against route hijacks.">
+<meta property="og:url" content="https://ipsubnetcalculatorcidr.vercel.app/guides/bgp-asn-rpki-explained/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0b6bde">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem('nk-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="stylesheet" href="/assets/css/style.css?v=858db731">
+<meta name="google-site-verification" content="oRgN_HmHnESYTVTZSc6DEeby8Fb9GwQx34rpckJhfDA"><meta name="google-adsense-account" content="ca-pub-2676656110030246"><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2676656110030246" crossorigin="anonymous"></script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "BGP, ASNs and RPKI Explained", "description": "What an autonomous system number is, how BGP uses it to exchange routes, how to read an AS path, and how RPKI route origin validation protects against route hijacks.", "datePublished": "2026-11-22", "dateModified": "2026-11-22", "mainEntityOfPage": "https://ipsubnetcalculatorcidr.vercel.app/guides/bgp-asn-rpki-explained/", "author": {"@type": "Organization", "name": "NetKit"}, "publisher": {"@type": "Organization", "name": "NetKit"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://ipsubnetcalculatorcidr.vercel.app/"}, {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://ipsubnetcalculatorcidr.vercel.app/guides/"}, {"@type": "ListItem", "position": 3, "name": "BGP, ASNs and RPKI Explained", "item": "https://ipsubnetcalculatorcidr.vercel.app/guides/bgp-asn-rpki-explained/"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Do I need an ASN?", "acceptedAnswer": {"@type": "Answer", "text": "Only if you connect to more than one upstream provider and want your own routing policy, or you hold your own address space. Single-homed customers normally use their provider's ASN."}}, {"@type": "Question", "name": "What is maxLength in a ROA?", "acceptedAnswer": {"@type": "Answer", "text": "It is the longest prefix length the origin AS is allowed to announce. A ROA for 192.0.2.0/24 with maxLength 24 does not authorise a more specific /25."}}, {"@type": "Question", "name": "Does RPKI encrypt BGP?", "acceptedAnswer": {"@type": "Answer", "text": "No. It validates who may originate a prefix. It does not encrypt or authenticate the BGP session."}}]}</script>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">/24</span>NetKit</a>
+<div class="header-actions"><button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">Theme</button></div>
+</div></header>
+<nav class="tabs" aria-label="Tools"><div class="wrap"><a class="tab" href="/what-is-my-ip/">My IP</a><a class="tab" href="/cidr-calculator/">CIDR Calculator</a><a class="tab" href="/dns-lookup/">DNS Lookup</a><a class="tab" href="/bgp-asn-lookup/">BGP / ASN</a><a class="tab" href="/subnet-chart/">Subnet Chart</a><a class="tab" href="/port-numbers/">Port Numbers</a><a class="tab" href="/ip-converter/">IP Converter</a><a class="tab" href="/bandwidth-calculator/">Bandwidth Calc</a><a class="tab" href="/wildcard-mask-calculator/">Wildcard Mask</a><a class="tab" href="/vlsm-calculator/">VLSM Calculator</a><a class="tab" href="/route-summarization/">Route Summary</a><a class="tab" href="/speed-test/">Speed Test</a><a class="tab" href="/latency-ping-test/">Ping Test</a><a class="tab" href="/traceroute-analyzer/">Traceroute</a><a class="tab" href="/open-port-checker/">Port Checker</a><a class="tab" href="/guides/" aria-current="page">Guides</a></div></nav>
+<script src="/assets/js/net.js?v=a6fe9476"></script>
+<script src="/assets/js/app.js?v=411fe5fd"></script>
+<main><div class="wrap"><div class="layout"><div class="content"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> &rsaquo; <a href="/guides/">Guides</a> &rsaquo; BGP, ASNs and RPKI Explained</nav><h1>BGP, ASNs and RPKI Explained</h1><p class="lead">The basics of how the internet routes between networks: what an ASN is, how BGP uses it, and how RPKI helps stop bad route announcements.</p><section class="article" style="margin-top:8px"><p>The internet is a network of networks. Each network that sets its own routing policy is an <strong>autonomous system (AS)</strong>, and the protocol they use to tell each other which addresses they can reach is the <strong>Border Gateway Protocol (BGP)</strong>.</p>
+
+<h2>What is an ASN?</h2>
+<p>An autonomous system number is the identifier of an AS. ASNs were originally 16 bits (0 to 65535) and are now 32 bits, written either as a plain number such as <code>AS64500</code> or in older "asdot" form. They are allocated by the regional internet registries (ARIN, RIPE NCC, APNIC, LACNIC and AFRINIC).</p>
+<ul>
+<li><strong>64512 &ndash; 65534</strong> and <strong>4200000000 &ndash; 4294967294</strong> are private ASNs, used inside a network or between a customer and an ISP, and not visible on the public internet.</li>
+<li><strong>64496 &ndash; 64511</strong> are reserved for documentation.</li>
+</ul>
+
+<h2>How BGP works</h2>
+<p>Two routers form a BGP session over TCP port 179. They exchange prefixes along with attributes such as the AS path, the list of ASNs a route passed through. Each AS prepends its own number when it passes a route on. External BGP (eBGP) runs between different ASNs and internal BGP (iBGP) runs inside one.</p>
+
+<h2>Reading an AS path</h2>
+<p>If you see the path <code>64500 64501 64502</code> for a prefix, the route originated in AS64502, passed through AS64501 and then AS64500 to reach you. By default, BGP prefers the shortest AS path, although local preference and other attributes are checked first. Operators can lengthen a path on purpose, which is called prepending, to make a route less attractive.</p>
+
+<h2>Route hijacks and leaks</h2>
+<p>BGP was designed on trust. If an AS announces a prefix it does not own, neighbours may accept it, which sends traffic to the wrong place. This is a hijack. A route leak is when an AS passes routes to a neighbour that it should not have, for example announcing one provider's routes to another.</p>
+
+<h2>RPKI and route origin validation</h2>
+<p>The Resource Public Key Infrastructure lets the holder of a prefix publish a signed statement called a <strong>Route Origin Authorization (ROA)</strong>. It says which ASN may originate the prefix and the longest prefix length (maxLength) it may announce. A router doing route origin validation compares each received route with the ROAs and marks it:</p>
+<ul>
+<li><strong>Valid</strong>: a ROA matches the origin ASN and the length is within maxLength.</li>
+<li><strong>Invalid</strong>: a ROA covers the prefix but the origin ASN or length does not match.</li>
+<li><strong>Not found</strong>: no ROA covers the prefix.</li>
+</ul>
+<p>Many networks now drop invalid routes. RPKI checks the origin only, not the full path, so it does not stop every kind of leak or hijack.</p>
+
+<h2>Checking your own prefixes</h2>
+<p>Use the <a href="/bgp-asn-lookup/">BGP and ASN lookup</a> to see which prefixes an ASN announces, who its neighbours are, and the RPKI status of a prefix.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>Do I need an ASN?</summary><p>Only if you connect to more than one upstream provider and want your own routing policy, or you hold your own address space. Single-homed customers normally use their provider's ASN.</p></details>
+<details><summary>What is maxLength in a ROA?</summary><p>It is the longest prefix length the origin AS is allowed to announce. A ROA for 192.0.2.0/24 with maxLength 24 does not authorise a more specific /25.</p></details>
+<details><summary>Does RPKI encrypt BGP?</summary><p>No. It validates who may originate a prefix. It does not encrypt or authenticate the BGP session.</p></details><p class="muted" style="margin-top:22px">Last updated November 22, 2026.</p></section><section class="related"><h2>Related tools</h2><div class="cards"><a class="card" href="/bgp-asn-lookup/"><span class="glyph">AS</span><h3>BGP / ASN</h3><p>ASN holder, announced prefixes, neighbours and RPKI status from RIPEstat.</p></a><a class="card" href="/what-is-my-ip/"><span class="glyph">IP</span><h3>My IP</h3><p>Your public IPv4 and IPv6, ISP, ASN and location. Look up any IP.</p></a><a class="card" href="/dns-lookup/"><span class="glyph">DNS</span><h3>DNS Lookup</h3><p>A, AAAA, MX, TXT, NS, CAA and more. Compare resolvers and reverse lookups.</p></a></div></section><section class="related"><h2>Keep reading</h2><div class="cards"><a class="card" href="/guides/public-vs-private-ip-and-nat/"><span class="glyph">Guide</span><h3>Public vs Private IP Addresses and NAT</h3><p>The difference between public and private IP addresses, how NAT and PAT let private hosts reach the internet, and the common problems NAT causes.</p></a><a class="card" href="/guides/private-ip-address-ranges/"><span class="glyph">Guide</span><h3>Private IP Address Ranges</h3><p>The three private IPv4 ranges in RFC 1918, plus CGNAT, link-local, loopback and IPv6 unique local addresses, with sizes and guidance on which to choose.</p></a><a class="card" href="/guides/cidr-notation-explained/"><span class="glyph">Guide</span><h3>CIDR Notation Explained</h3><p>CIDR notation explained clearly: what the slash number means, why it replaced classful addressing, how route aggregation works and how routers pick the longest prefix.</p></a></div></section></div></div></div></main>
+<footer class="site-footer"><div class="wrap">
+<div class="cols">
+<div><h4>NetKit</h4><p>Free online tools for network engineers. Calculators run in your browser; lookups use public APIs.</p></div>
+<div><h4>Tools</h4><ul><li><a href="/what-is-my-ip/">My IP</a></li><li><a href="/cidr-calculator/">CIDR Calculator</a></li><li><a href="/dns-lookup/">DNS Lookup</a></li><li><a href="/bgp-asn-lookup/">BGP / ASN</a></li><li><a href="/subnet-chart/">Subnet Chart</a></li><li><a href="/port-numbers/">Port Numbers</a></li><li><a href="/ip-converter/">IP Converter</a></li><li><a href="/bandwidth-calculator/">Bandwidth Calc</a></li><li><a href="/wildcard-mask-calculator/">Wildcard Mask</a></li><li><a href="/vlsm-calculator/">VLSM Calculator</a></li><li><a href="/route-summarization/">Route Summary</a></li><li><a href="/speed-test/">Speed Test</a></li><li><a href="/latency-ping-test/">Ping Test</a></li><li><a href="/traceroute-analyzer/">Traceroute</a></li><li><a href="/open-port-checker/">Port Checker</a></li></ul></div>
+<div><h4>Company</h4><ul><li><a href="/guides/">Guides</a></li><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+</div>
+<p class="fine">&copy; 2026 NetKit. Results are provided for information only; verify before using them in production changes.</p>
+</div></footer>
+</body>
+</html>

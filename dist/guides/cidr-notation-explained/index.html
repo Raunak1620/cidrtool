@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CIDR Notation Explained: Prefix Lengths, Aggregation and Routing | NetKit</title>
+<meta name="description" content="CIDR notation explained clearly: what the slash number means, why it replaced classful addressing, how route aggregation works and how routers pick the longest prefix.">
+<link rel="canonical" href="https://ipsubnetcalculatorcidr.vercel.app/guides/cidr-notation-explained/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NetKit">
+<meta property="og:title" content="CIDR Notation Explained: Prefix Lengths, Aggregation and Routing | NetKit">
+<meta property="og:description" content="CIDR notation explained clearly: what the slash number means, why it replaced classful addressing, how route aggregation works and how routers pick the longest prefix.">
+<meta property="og:url" content="https://ipsubnetcalculatorcidr.vercel.app/guides/cidr-notation-explained/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0b6bde">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem('nk-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="stylesheet" href="/assets/css/style.css?v=858db731">
+<meta name="google-site-verification" content="oRgN_HmHnESYTVTZSc6DEeby8Fb9GwQx34rpckJhfDA"><meta name="google-adsense-account" content="ca-pub-2676656110030246"><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2676656110030246" crossorigin="anonymous"></script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "CIDR Notation Explained", "description": "CIDR notation explained clearly: what the slash number means, why it replaced classful addressing, how route aggregation works and how routers pick the longest prefix.", "datePublished": "2026-11-21", "dateModified": "2026-11-21", "mainEntityOfPage": "https://ipsubnetcalculatorcidr.vercel.app/guides/cidr-notation-explained/", "author": {"@type": "Organization", "name": "NetKit"}, "publisher": {"@type": "Organization", "name": "NetKit"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://ipsubnetcalculatorcidr.vercel.app/"}, {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://ipsubnetcalculatorcidr.vercel.app/guides/"}, {"@type": "ListItem", "position": 3, "name": "CIDR Notation Explained", "item": "https://ipsubnetcalculatorcidr.vercel.app/guides/cidr-notation-explained/"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What does the number after the slash mean?", "acceptedAnswer": {"@type": "Answer", "text": "It is the prefix length: the number of leading bits in the address that identify the network. The rest of the 32 bits identify hosts."}}, {"@type": "Question", "name": "What is the difference between CIDR notation and a subnet mask?", "acceptedAnswer": {"@type": "Answer", "text": "They carry the same information. A /26 prefix and the mask 255.255.255.192 both say that the first 26 bits are the network part. CIDR notation is shorter to write."}}, {"@type": "Question", "name": "Is classful addressing still used?", "acceptedAnswer": {"@type": "Answer", "text": "Not for routing. Routers and hosts use the prefix length they are configured with. The class names remain useful vocabulary and appear in certification exams."}}, {"@type": "Question", "name": "Can a prefix be any length from 0 to 32?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Any length from /0 to /32 is valid in IPv4, although some are used only in special cases, such as /0 for the default route and /32 for a single host."}}]}</script>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">/24</span>NetKit</a>
+<div class="header-actions"><button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">Theme</button></div>
+</div></header>
+<nav class="tabs" aria-label="Tools"><div class="wrap"><a class="tab" href="/what-is-my-ip/">My IP</a><a class="tab" href="/cidr-calculator/">CIDR Calculator</a><a class="tab" href="/dns-lookup/">DNS Lookup</a><a class="tab" href="/bgp-asn-lookup/">BGP / ASN</a><a class="tab" href="/subnet-chart/">Subnet Chart</a><a class="tab" href="/port-numbers/">Port Numbers</a><a class="tab" href="/ip-converter/">IP Converter</a><a class="tab" href="/bandwidth-calculator/">Bandwidth Calc</a><a class="tab" href="/wildcard-mask-calculator/">Wildcard Mask</a><a class="tab" href="/vlsm-calculator/">VLSM Calculator</a><a class="tab" href="/route-summarization/">Route Summary</a><a class="tab" href="/speed-test/">Speed Test</a><a class="tab" href="/latency-ping-test/">Ping Test</a><a class="tab" href="/traceroute-analyzer/">Traceroute</a><a class="tab" href="/open-port-checker/">Port Checker</a><a class="tab" href="/guides/" aria-current="page">Guides</a></div></nav>
+<script src="/assets/js/net.js?v=a6fe9476"></script>
+<script src="/assets/js/app.js?v=411fe5fd"></script>
+<main><div class="wrap"><div class="layout"><div class="content"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> &rsaquo; <a href="/guides/">Guides</a> &rsaquo; CIDR Notation Explained</nav><h1>CIDR Notation Explained</h1><p class="lead">CIDR writes an IP network as an address plus a prefix length. It replaced fixed address classes and made route aggregation possible.</p><section class="article" style="margin-top:8px"><p>CIDR, short for Classless Inter-Domain Routing, describes an IP network by an address and a prefix length, for example 203.0.113.0/24. The number after the slash says how many leading bits are the network part. CIDR replaced the old fixed address classes, so a network can be any power-of-two size and routes can be combined into shorter prefixes.</p>
+
+<h2>How to read CIDR notation</h2>
+<p>In 203.0.113.0/24 the first 24 of the 32 bits identify the network and the last 8 identify hosts. The prefix length is just another way of writing a subnet mask. A /24 is the same as the mask 255.255.255.0. A /26 is the same as 255.255.255.192. A larger prefix number means a longer network part and a smaller network. The <a href="/cidr-calculator/">CIDR calculator</a> converts between prefix lengths, masks and address ranges.</p>
+<p>The prefix also fixes the size of the block. A network with <em>h</em> host bits contains 2<sup><em>h</em></sup> addresses, so a /24 has 256 addresses, a /23 has 512 and a /22 has 1,024. Every step toward a shorter prefix doubles the block.</p>
+
+<h2>Why classful addressing was replaced</h2>
+<p>Early IPv4 used fixed classes decided by the first bits of the address. Class A networks had a /8 prefix, class B had /16 and class C had /24. The first octet decided the class: 0 to 127 was class A, 128 to 191 was class B and 192 to 223 was class C.</p>
+<p>The fixed sizes caused two problems:</p>
+<ul>
+<li>An organization that needed 1,000 addresses was too big for a class C (254 usable hosts) and received a class B (65,534 usable hosts), most of which went unused.</li>
+<li>Giving out many small class C networks to organizations that needed a few thousand addresses filled the global routing table with separate entries.</li>
+</ul>
+<p>CIDR, first specified in RFC 1519 in 1993 and now described in RFC 4632, removed the classes. An allocation can be sized to fit, for example a /22 for 1,000 hosts, and neighbouring allocations can be advertised as one route. Class names still appear in exam material and older documentation, but routing today is classless.</p>
+
+<h2>Route aggregation</h2>
+<p>Aggregation, also called supernetting or route summarization, replaces several routes with a single shorter prefix. Take four consecutive /24 networks:</p>
+<pre class="code">192.168.0.0/24
+192.168.1.0/24
+192.168.2.0/24
+192.168.3.0/24</pre>
+<p>Together they cover 192.168.0.0 to 192.168.3.255, which is exactly one /22. The summary is 192.168.0.0/22 with the mask 255.255.252.0. A router upstream needs one route instead of four.</p>
+<p>A group of networks can be summarized into a single prefix only when all of these are true:</p>
+<ol>
+<li>The number of networks is a power of two.</li>
+<li>They are contiguous, with no gaps.</li>
+<li>The first network starts on a boundary that fits the block size. A /22 must start on a multiple of 4 in the third octet.</li>
+</ol>
+<p>This is why 192.168.1.0/24 to 192.168.4.0/24 cannot become a single /22. The range starts at 1, which is not a multiple of 4. The shortest accurate description is three routes: 192.168.1.0/24, 192.168.2.0/23 and 192.168.4.0/24. Planning address blocks so that related subnets sit together and start on the right boundary is what makes summarization possible later. The <a href="/guides/vlsm-tutorial/">VLSM tutorial</a> shows how to allocate subnets in a way that keeps them aligned.</p>
+
+<h2>Longest prefix match</h2>
+<p>When a routing table holds overlapping prefixes, a router forwards a packet using the matching route with the longest prefix. It is the most specific route. Suppose a router has these three routes:</p>
+<div class="table-wrap"><table class="data">
+<thead><tr><th>Route</th><th>Covers</th></tr></thead>
+<tbody>
+<tr><td>10.0.0.0/8</td><td>10.0.0.0 to 10.255.255.255</td></tr>
+<tr><td>10.1.0.0/16</td><td>10.1.0.0 to 10.1.255.255</td></tr>
+<tr><td>10.1.2.0/24</td><td>10.1.2.0 to 10.1.2.255</td></tr>
+</tbody></table></div>
+<p>Where each destination goes:</p>
+<ul>
+<li>10.1.2.50 matches all three routes. The /24 is the longest, so it wins.</li>
+<li>10.1.9.9 matches the /8 and the /16. The /16 wins.</li>
+<li>10.200.0.1 matches only the /8, so it uses the /8.</li>
+</ul>
+<p>This rule lets you advertise a broad aggregate and still carve out exceptions with more specific routes. It is also how a hijacked or leaked prefix can attract traffic: a more specific announcement beats a broader one. The <a href="/bgp-asn-lookup/">BGP and ASN lookup</a> shows the prefixes an AS announces.</p>
+
+<h2>Special prefix lengths</h2>
+<ul>
+<li><strong>/0</strong> matches every address. 0.0.0.0/0 is the default route, used when nothing more specific matches. See the <a href="/cidr/0/">/0 reference</a>.</li>
+<li><strong>/32</strong> matches exactly one address. It is used for loopbacks, router IDs and host routes. See the <a href="/cidr/32/">/32 reference</a>.</li>
+<li><strong>/31</strong> is a point-to-point link with two usable addresses (RFC 3021).</li>
+</ul>
+
+<h2>CIDR in access lists</h2>
+<p>CIDR is the notation for networks in firewalls, cloud security groups and prefix lists. Cisco IOS access lists and OSPF network statements use a wildcard mask instead of a prefix length. For 192.168.0.0/22 the wildcard is 0.0.3.255. The <a href="/guides/wildcard-masks-explained/">wildcard mask guide</a> covers how to convert between the two.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>What does the number after the slash mean?</summary><p>It is the prefix length: the number of leading bits in the address that identify the network. The rest of the 32 bits identify hosts.</p></details>
+<details><summary>What is the difference between CIDR notation and a subnet mask?</summary><p>They carry the same information. A /26 prefix and the mask 255.255.255.192 both say that the first 26 bits are the network part. CIDR notation is shorter to write.</p></details>
+<details><summary>Is classful addressing still used?</summary><p>Not for routing. Routers and hosts use the prefix length they are configured with. The class names remain useful vocabulary and appear in certification exams.</p></details>
+<details><summary>Can a prefix be any length from 0 to 32?</summary><p>Yes. Any length from /0 to /32 is valid in IPv4, although some are used only in special cases, such as /0 for the default route and /32 for a single host.</p></details><p class="muted" style="margin-top:22px">Last updated November 21, 2026.</p></section><section class="related"><h2>Related tools</h2><div class="cards"><a class="card" href="/cidr-calculator/"><span class="glyph">/24</span><h3>CIDR Calculator</h3><p>Network, broadcast, usable range, wildcard and subnet splitting for IPv4 and IPv6.</p></a><a class="card" href="/subnet-chart/"><span class="glyph">/n</span><h3>Subnet Chart</h3><p>Searchable CIDR, netmask and wildcard chart for /0 to /32, plus IPv6 sizes.</p></a><a class="card" href="/wildcard-mask-calculator/"><span class="glyph">wc</span><h3>Wildcard Mask</h3><p>Subnet mask, CIDR and wildcard conversion, ACL snippets and IP range to CIDR.</p></a></div></section><section class="related"><h2>Keep reading</h2><div class="cards"><a class="card" href="/guides/how-subnetting-works/"><span class="glyph">Guide</span><h3>How Subnetting Works</h3><p>Learn how subnetting works with a clear step-by-step method: network and host bits, subnet masks, block size and a fully worked example for 192.168.10.77/26.</p></a><a class="card" href="/guides/wildcard-masks-explained/"><span class="glyph">Guide</span><h3>Wildcard Masks Explained</h3><p>Learn what a wildcard mask is, how to calculate one from a subnet mask, and how to use it in Cisco ACLs and OSPF network statements, with worked examples.</p></a><a class="card" href="/guides/vlsm-tutorial/"><span class="glyph">Guide</span><h3>VLSM Tutorial</h3><p>A step-by-step VLSM tutorial. Learn to allocate variable length subnets from one address block, with a worked example that fits four segments into a /24.</p></a></div></section></div></div></div></main>
+<footer class="site-footer"><div class="wrap">
+<div class="cols">
+<div><h4>NetKit</h4><p>Free online tools for network engineers. Calculators run in your browser; lookups use public APIs.</p></div>
+<div><h4>Tools</h4><ul><li><a href="/what-is-my-ip/">My IP</a></li><li><a href="/cidr-calculator/">CIDR Calculator</a></li><li><a href="/dns-lookup/">DNS Lookup</a></li><li><a href="/bgp-asn-lookup/">BGP / ASN</a></li><li><a href="/subnet-chart/">Subnet Chart</a></li><li><a href="/port-numbers/">Port Numbers</a></li><li><a href="/ip-converter/">IP Converter</a></li><li><a href="/bandwidth-calculator/">Bandwidth Calc</a></li><li><a href="/wildcard-mask-calculator/">Wildcard Mask</a></li><li><a href="/vlsm-calculator/">VLSM Calculator</a></li><li><a href="/route-summarization/">Route Summary</a></li><li><a href="/speed-test/">Speed Test</a></li><li><a href="/latency-ping-test/">Ping Test</a></li><li><a href="/traceroute-analyzer/">Traceroute</a></li><li><a href="/open-port-checker/">Port Checker</a></li></ul></div>
+<div><h4>Company</h4><ul><li><a href="/guides/">Guides</a></li><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+</div>
+<p class="fine">&copy; 2026 NetKit. Results are provided for information only; verify before using them in production changes.</p>
+</div></footer>
+</body>
+</html>

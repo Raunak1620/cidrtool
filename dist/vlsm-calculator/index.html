@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VLSM Calculator: Plan Variable Length Subnets from Host Counts | NetKit</title>
+<meta name="description" content="Free VLSM calculator. Enter a network and the number of hosts each subnet needs and get an efficient, non-overlapping subnet plan with ranges, masks and broadcast addresses.">
+<link rel="canonical" href="https://ipsubnetcalculatorcidr.vercel.app/vlsm-calculator/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NetKit">
+<meta property="og:title" content="VLSM Calculator: Plan Variable Length Subnets from Host Counts | NetKit">
+<meta property="og:description" content="Free VLSM calculator. Enter a network and the number of hosts each subnet needs and get an efficient, non-overlapping subnet plan with ranges, masks and broadcast addresses.">
+<meta property="og:url" content="https://ipsubnetcalculatorcidr.vercel.app/vlsm-calculator/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0b6bde">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem('nk-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="stylesheet" href="/assets/css/style.css?v=858db731">
+<meta name="google-site-verification" content="oRgN_HmHnESYTVTZSc6DEeby8Fb9GwQx34rpckJhfDA"><meta name="google-adsense-account" content="ca-pub-2676656110030246"><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2676656110030246" crossorigin="anonymous"></script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "VLSM Calculator", "url": "https://ipsubnetcalculatorcidr.vercel.app/vlsm-calculator/", "applicationCategory": "DeveloperApplication", "operatingSystem": "Any", "browserRequirements": "Requires JavaScript", "description": "Free VLSM calculator. Enter a network and the number of hosts each subnet needs and get an efficient, non-overlapping subnet plan with ranges, masks and broadcast addresses.", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://ipsubnetcalculatorcidr.vercel.app/"}, {"@type": "ListItem", "position": 2, "name": "VLSM Calculator", "item": "https://ipsubnetcalculatorcidr.vercel.app/vlsm-calculator/"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Why are subnets sorted largest first?", "acceptedAnswer": {"@type": "Answer", "text": "Block sizes are powers of two, and a block must start on a multiple of its own size. If you place large blocks first, every smaller block that follows is automatically aligned, so no addresses are wasted on gaps."}}, {"@type": "Question", "name": "Does the order of my requirements matter?", "acceptedAnswer": {"@type": "Answer", "text": "No. The calculator sorts them itself. If two subnets are the same size, they keep the order you entered them in."}}, {"@type": "Question", "name": "What happens if the subnets do not fit?", "acceptedAnswer": {"@type": "Answer", "text": "The calculator lists which subnet does not fit and why, and still allocates the ones that do. Use a larger network or reduce a host count."}}, {"@type": "Question", "name": "Can I share my plan?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The page address updates as you edit, so you can copy the URL and send it to a colleague."}}]}</script>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">/24</span>NetKit</a>
+<div class="header-actions"><button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">Theme</button></div>
+</div></header>
+<nav class="tabs" aria-label="Tools"><div class="wrap"><a class="tab" href="/what-is-my-ip/">My IP</a><a class="tab" href="/cidr-calculator/">CIDR Calculator</a><a class="tab" href="/dns-lookup/">DNS Lookup</a><a class="tab" href="/bgp-asn-lookup/">BGP / ASN</a><a class="tab" href="/subnet-chart/">Subnet Chart</a><a class="tab" href="/port-numbers/">Port Numbers</a><a class="tab" href="/ip-converter/">IP Converter</a><a class="tab" href="/bandwidth-calculator/">Bandwidth Calc</a><a class="tab" href="/wildcard-mask-calculator/">Wildcard Mask</a><a class="tab" href="/vlsm-calculator/" aria-current="page">VLSM Calculator</a><a class="tab" href="/route-summarization/">Route Summary</a><a class="tab" href="/speed-test/">Speed Test</a><a class="tab" href="/latency-ping-test/">Ping Test</a><a class="tab" href="/traceroute-analyzer/">Traceroute</a><a class="tab" href="/open-port-checker/">Port Checker</a><a class="tab" href="/guides/">Guides</a></div></nav>
+<script src="/assets/js/net.js?v=a6fe9476"></script>
+<script src="/assets/js/app.js?v=411fe5fd"></script>
+<main><div class="wrap"><div class="layout"><div class="content"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> &rsaquo; VLSM Calculator</nav><h1>VLSM Calculator</h1><p class="lead">Enter the network you want to divide and how many hosts each subnet needs. The calculator allocates the largest subnets first and shows the ranges, masks and spare capacity.</p><div class="tool">
+  <div class="row">
+    <div class="field" style="flex:2 1 240px"><label for="vl-base">Network to divide</label>
+      <input id="vl-base" type="text" value="192.168.10.0/24" spellcheck="false" autocapitalize="off" autocomplete="off"></div>
+    <label class="check"><input type="checkbox" id="vl-p2p"> Use /31 for links with 2 hosts</label>
+  </div>
+  <h2 class="sub">Subnets you need</h2>
+  <div id="vl-rows"></div>
+  <div class="row" style="margin-top:6px"><button type="button" class="btn secondary" id="vl-add">+ Add subnet</button></div>
+  <div class="out" id="vl-out" aria-live="polite"></div>
+</div>
+
+<script>
+(function () {
+  var f = NK.intToIpv4, rowsEl = NK.$('#vl-rows'), out = NK.$('#vl-out'), baseEl = NK.$('#vl-base'), p2p = NK.$('#vl-p2p');
+  var rows = [{ name: 'Sales', hosts: '60' }, { name: 'Engineering', hosts: '28' }, { name: 'Management', hosts: '10' }, { name: 'WAN link', hosts: '2' }];
+
+  function draw() {
+    rowsEl.innerHTML = rows.map(function (r, i) {
+      return '<div class="row" style="margin-bottom:8px"><div class="field" style="flex:2 1 160px"><label for="vl-n' + i + '">Name</label>' +
+        '<input id="vl-n' + i + '" data-i="' + i + '" data-k="name" type="text" maxlength="40" value="' + NK.esc(r.name) + '"></div>' +
+        '<div class="field" style="flex:1 1 120px"><label for="vl-h' + i + '">Hosts needed</label>' +
+        '<input id="vl-h' + i + '" data-i="' + i + '" data-k="hosts" type="number" min="1" step="1" value="' + NK.esc(r.hosts) + '"></div>' +
+        '<button type="button" class="btn secondary" data-del="' + i + '" aria-label="Remove subnet ' + (i + 1) + '">Remove</button></div>';
+    }).join('');
+  }
+  function usable(p) { return p === 32 ? 1 : p === 31 ? 2 : Math.pow(2, 32 - p) - 2; }
+
+  function compute() {
+    var spec = NK.parseV4Spec(baseEl.value);
+    if (!spec || spec.bare || spec.prefix > 30) { out.innerHTML = '<div class="alert err">Enter the network to divide with a prefix of /30 or shorter, for example <code>192.168.10.0/24</code>.</div>'; return; }
+    var bi = NK.cidr4Info(spec.ip, spec.prefix), reqs = [], problems = [];
+    rows.forEach(function (r, i) {
+      var h = /^\d{1,10}$/.test(String(r.hosts).trim()) ? parseInt(r.hosts, 10) : NaN;
+      if (!(h >= 1 && h <= 2147483646)) { problems.push('Row ' + (i + 1) + ' needs a whole number of hosts of at least 1.'); return; }
+      reqs.push({ name: (r.name || '').replace(/[,:]/g, ' ').trim() || 'Subnet ' + (i + 1), hosts: h });
+    });
+    if (problems.length) { out.innerHTML = '<div class="alert err">' + problems.map(NK.esc).join('<br>') + '</div>'; return; }
+    NK.setParams({ q: f(bi.network) + '/' + bi.prefix, r: rows.map(function (x) { return (x.name || '').replace(/[,:]/g, ' ') + ':' + x.hosts; }).join(','), p: p2p.checked ? '1' : '' });
+    var plan = NK.vlsmPlan(bi.network, bi.prefix, reqs, p2p.checked), body = '', used = 0;
+    plan.allocated.forEach(function (it) {
+      var i = NK.cidr4Info(it.net, it.prefix); used += it.size;
+      body += '<tr><td><strong>' + NK.esc(it.name) + '</strong></td><td>' + NK.fmtNum(it.hosts) + '</td><td class="mono copyable">' + f(it.net) + '/' + it.prefix + '</td><td class="mono">' + f(i.mask) +
+        '</td><td class="mono">' + (it.prefix >= 31 ? f(i.first) + (it.prefix === 31 ? ' &ndash; ' + f(i.last) : '') : f(i.first) + ' &ndash; ' + f(i.last)) + '</td><td class="mono">' + (it.prefix >= 31 ? 'none' : f(i.broadcast)) +
+        '</td><td>' + NK.fmtNum(usable(it.prefix)) + '</td><td>' + NK.fmtNum(usable(it.prefix) - it.hosts) + '</td></tr>';
+    });
+    var h = '';
+    plan.failed.forEach(function (it) {
+      h += '<div class="alert err"><strong>' + NK.esc(it.name) + '</strong> does not fit: it needs a /' + it.prefix + ' (' + NK.fmtNum(it.size) + ' addresses), ' +
+        (it.prefix < bi.prefix ? 'which is larger than the whole /' + bi.prefix + ' you are dividing.' : 'but only ' + NK.fmtNum(plan.freeLeft) + ' addresses remain after the larger subnets.') + '</div>';
+    });
+    if (plan.allocated.length) {
+      h += '<p class="muted">Subnets are allocated largest first, which keeps every block aligned and avoids gaps.</p><div class="table-wrap"><table class="data"><thead><tr><th>Name</th><th>Hosts needed</th><th>Subnet</th><th>Netmask</th><th>Usable range</th><th>Broadcast</th><th>Usable hosts</th><th>Spare</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+      h += '<dl class="kv" style="margin-top:14px">' +
+        '<div><dt>Address space used</dt><dd>' + NK.fmtNum(used) + ' of ' + NK.fmtNum(bi.total) + ' addresses (' + (used / bi.total * 100).toFixed(1) + '%)</dd></div>' +
+        '<div><dt>Next free address</dt><dd class="mono">' + (plan.freeLeft > 0 ? f(plan.nextFree) : 'none left') + '</dd></div>' +
+        '<div><dt>Addresses left</dt><dd>' + NK.fmtNum(plan.freeLeft) + '</dd></div></dl>';
+    }
+    out.innerHTML = h;
+  }
+
+  rowsEl.addEventListener('input', function (e) {
+    var t = e.target, i = t.getAttribute('data-i'); if (i === null) return;
+    rows[+i][t.getAttribute('data-k')] = t.value; compute();
+  });
+  rowsEl.addEventListener('click', function (e) {
+    var d = e.target.closest('[data-del]'); if (!d) return;
+    if (rows.length > 1) { rows.splice(+d.getAttribute('data-del'), 1); draw(); compute(); }
+  });
+  NK.$('#vl-add').addEventListener('click', function () {
+    rows.push({ name: 'Subnet ' + (rows.length + 1), hosts: '10' }); draw(); compute();
+    var el = NK.$('#vl-n' + (rows.length - 1)); if (el) el.focus();
+  });
+  baseEl.addEventListener('input', compute); p2p.addEventListener('change', compute);
+
+  var q = NK.getParam('q'), rr = NK.getParam('r');
+  if (q) baseEl.value = q;
+  if (rr) {
+    var parsed = rr.split(',').map(function (s) { var k = s.lastIndexOf(':'); return k < 0 ? null : { name: s.slice(0, k), hosts: s.slice(k + 1) }; }).filter(Boolean);
+    if (parsed.length) rows = parsed.slice(0, 40);
+  }
+  if (NK.getParam('p') === '1') p2p.checked = true;
+  draw(); compute();
+})();
+</script><section class="article"><h2>What is VLSM?</h2>
+<p>Variable Length Subnet Masking means using different prefix lengths inside the same network, so each subnet is only as big as it needs to be. Without it, a /24 split evenly into four /26 subnets wastes addresses on a point-to-point link that needs two. With VLSM you can give a 60-host VLAN a /26, a 28-host VLAN a /27 and a router link a /30 from the same block.</p>
+
+<h2>How the calculator allocates subnets</h2>
+<ol>
+<li>For each requirement it finds the smallest block that holds the hosts, using usable hosts = 2<sup>n</sup> &minus; 2 where n is the number of host bits.</li>
+<li>It sorts the requirements from largest to smallest.</li>
+<li>It places them one after another from the start of your network. Placing large blocks first keeps every block aligned to its own size, so nothing overlaps and no space is lost to gaps.</li>
+</ol>
+<p>With the default example, 60 hosts needs a /26 (62 usable), 28 needs a /27 (30 usable), 10 needs a /28 (14 usable) and 2 needs a /30 (2 usable), and everything fits in the first 116 addresses of 192.168.10.0/24.</p>
+
+<h2>Point-to-point links and /31</h2>
+<p>A /30 wastes two addresses on a two-device link. RFC 3021 allows a /31 on point-to-point links, where both addresses are usable. Tick the box above to use /31 for any requirement of one or two hosts. Check that your devices support it first.</p>
+
+<h2>Leave room to grow</h2>
+<p>The plan sizes each subnet to exactly what you ask for. Add growth to the host counts before you calculate, for example 30 to 50 percent for user VLANs, because renumbering a subnet later is expensive.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>Why are subnets sorted largest first?</summary><p>Block sizes are powers of two, and a block must start on a multiple of its own size. If you place large blocks first, every smaller block that follows is automatically aligned, so no addresses are wasted on gaps.</p></details>
+<details><summary>Does the order of my requirements matter?</summary><p>No. The calculator sorts them itself. If two subnets are the same size, they keep the order you entered them in.</p></details>
+<details><summary>What happens if the subnets do not fit?</summary><p>The calculator lists which subnet does not fit and why, and still allocates the ones that do. Use a larger network or reduce a host count.</p></details>
+<details><summary>Can I share my plan?</summary><p>Yes. The page address updates as you edit, so you can copy the URL and send it to a colleague.</p></details><p class="muted" style="margin-top:22px">Last reviewed November 22, 2026.</p></section><section class="related"><h2>Related tools</h2><div class="cards"><a class="card" href="/cidr-calculator/"><span class="glyph">/24</span><h3>CIDR Calculator</h3><p>Network, broadcast, usable range, wildcard and subnet splitting for IPv4 and IPv6.</p></a><a class="card" href="/subnet-chart/"><span class="glyph">/n</span><h3>Subnet Chart</h3><p>Searchable CIDR, netmask and wildcard chart for /0 to /32, plus IPv6 sizes.</p></a><a class="card" href="/route-summarization/"><span class="glyph">Σ</span><h3>Route Summary</h3><p>Aggregate prefixes into the fewest routes and find the covering summary route.</p></a></div></section></div></div></div></main>
+<footer class="site-footer"><div class="wrap">
+<div class="cols">
+<div><h4>NetKit</h4><p>Free online tools for network engineers. Calculators run in your browser; lookups use public APIs.</p></div>
+<div><h4>Tools</h4><ul><li><a href="/what-is-my-ip/">My IP</a></li><li><a href="/cidr-calculator/">CIDR Calculator</a></li><li><a href="/dns-lookup/">DNS Lookup</a></li><li><a href="/bgp-asn-lookup/">BGP / ASN</a></li><li><a href="/subnet-chart/">Subnet Chart</a></li><li><a href="/port-numbers/">Port Numbers</a></li><li><a href="/ip-converter/">IP Converter</a></li><li><a href="/bandwidth-calculator/">Bandwidth Calc</a></li><li><a href="/wildcard-mask-calculator/">Wildcard Mask</a></li><li><a href="/vlsm-calculator/">VLSM Calculator</a></li><li><a href="/route-summarization/">Route Summary</a></li><li><a href="/speed-test/">Speed Test</a></li><li><a href="/latency-ping-test/">Ping Test</a></li><li><a href="/traceroute-analyzer/">Traceroute</a></li><li><a href="/open-port-checker/">Port Checker</a></li></ul></div>
+<div><h4>Company</h4><ul><li><a href="/guides/">Guides</a></li><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+</div>
+<p class="fine">&copy; 2026 NetKit. Results are provided for information only; verify before using them in production changes.</p>
+</div></footer>
+</body>
+</html>

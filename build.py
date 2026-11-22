@@ -211,9 +211,11 @@ def layout(*, title, desc, path, h1="", lead="", body="", hero="", jsonld=(), cr
         f'<a class="tab" href="/{t["slug"]}/"' + (' aria-current="page"' if path == f'/{t["slug"]}/' else "") + f'>{e(t["nav"])}</a>'
         for t in tools
     )
+    tabs += '<a class="tab" href="/guides/"' + (' aria-current="page"' if path.startswith("/guides/") else "") + '>Guides</a>'
     crumbs = ""
     if crumb_name:
-        crumbs = f'<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> &rsaquo; {e(crumb_name)}</nav>'
+        mid = '<a href="/guides/">Guides</a> &rsaquo; ' if path.startswith("/guides/") and path != "/guides/" else ""
+        crumbs = f'<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> &rsaquo; {mid}{e(crumb_name)}</nav>'
     head_block = hero or (f'{crumbs}<h1>{e(h1)}</h1><p class="lead">{e(lead)}</p>' if h1 else crumbs)
     has_aside = HAS_ASIDE and ads
     aside = f'<aside class="aside">{ad("sidebar")}</aside>' if has_aside else ""
@@ -257,7 +259,7 @@ def layout(*, title, desc, path, h1="", lead="", body="", hero="", jsonld=(), cr
 <div class="cols">
 <div><h4>{e(SITE)}</h4><p>{e(TAGLINE)}. Calculators run in your browser; lookups use public APIs.</p></div>
 <div><h4>Tools</h4><ul>{tool_links}</ul></div>
-<div><h4>Company</h4><ul><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+<div><h4>Company</h4><ul><li><a href="/guides/">Guides</a></li><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
 </div>
 <p class="fine">&copy; {TODAY.year} {e(SITE)}. Results are provided for information only; verify before using them in production changes.</p>
 </div></footer>
@@ -319,7 +321,7 @@ def build_tool(t, tools):
                        body=body, jsonld=ld, crumb_name=t["nav"], tools=tools), "0.9")
 
 
-def build_home(tools):
+def build_home(tools, guides=()):
     cards = "".join(
         f'<a class="card" href="/{t["slug"]}/" data-s="{e(t["nav"] + " " + t["card"] + " " + t.get("keywords", ""))}">'
         f'<span class="glyph">{e(t["glyph"])}</span><h3>{e(t["nav"])}</h3><p>{e(t["card"])}</p></a>'
@@ -338,8 +340,12 @@ def build_home(tools):
         '<script>NK.filterRows(NK.$("#tool-search"),"#tool-cards .card");</script>'
     )
     article_html = fill(article)
+    guides_block = ""
+    if guides:
+        guides_block = ('<h2 class="sub" id="guides">Guides</h2>' + f'<div class="cards">{guide_cards(list(guides)[:6])}</div>'
+                        '<p><a href="/guides/">See all guides &rarr;</a></p>')
     body = (
-        f'{fill(top)}{tools_block}{ad("in_content")}{fill(rest)}'
+        f'{fill(top)}{tools_block}{guides_block}{ad("in_content")}{fill(rest)}'
         f'<section class="article">{article_html}</section>{ad("bottom")}'
     )
     ld = [{"@context": "https://schema.org", "@type": "WebSite", "name": SITE, "url": BASE + "/"},
@@ -357,8 +363,82 @@ def build_info_pages(tools):
         meta, widget, article = read_fragment(f)
         path = f"/{f.stem}/"
         body = f'<section class="article">{fill(widget)}{fill(article)}</section>'
-        write(path, layout(title=meta["title"], desc=meta["description"], path=path, h1=meta["h1"], lead=meta.get("lead", ""),
-                           body=body, crumb_name=meta["h1"], tools=tools, ads=False), "0.3")
+        write(path, layout(title=fill(meta["title"]), desc=fill(meta["description"]), path=path, h1=fill(meta["h1"]), lead=fill(meta.get("lead", "")),
+                           body=body, crumb_name=fill(meta["h1"]), tools=tools, ads=False), "0.3")
+
+
+
+# ------------------------------------------------------------------ guides
+GUIDE_ORDER = ["how-subnetting-works", "how-many-hosts-in-a-subnet", "cidr-notation-explained", "vlsm-tutorial",
+               "wildcard-masks-explained", "private-ip-address-ranges", "ipv4-vs-ipv6-subnetting",
+               "common-subnet-sizes-and-when-to-use-them", "bgp-asn-rpki-explained", "dns-record-types-explained",
+               "bandwidth-delay-product-and-tcp-throughput", "public-vs-private-ip-and-nat"]
+
+
+def load_guides():
+    gs = []
+    gdir = SRC / "guides"
+    for f in sorted(gdir.glob("*.html")) if gdir.exists() else []:
+        meta, body, _ = read_fragment(f)
+        for k in ("slug", "title", "description", "h1", "lead"):
+            if not meta.get(k):
+                raise SystemExit(f"{f.name}: missing front matter key '{k}'")
+        meta["body"] = body
+        gs.append(meta)
+    gs.sort(key=lambda g: (GUIDE_ORDER.index(g["slug"]) if g["slug"] in GUIDE_ORDER else 99, g["slug"]))
+    return gs
+
+
+def guide_cards(items):
+    return "".join(
+        f'<a class="card" href="/guides/{g["slug"]}/"><span class="glyph">Guide</span><h3>{e(g["h1"])}</h3><p>{e(g["description"])}</p></a>'
+        for g in items
+    )
+
+
+def build_guide(g, guides, tools):
+    path = f'/guides/{g["slug"]}/'
+    by_t = {t["slug"]: t for t in tools}
+    by_g = {x["slug"]: x for x in guides}
+    rt = [by_t[s.strip()] for s in g.get("related", "").split(",") if s.strip() in by_t]
+    rg = [by_g[s.strip()] for s in g.get("guides", "").split(",") if s.strip() in by_g and s.strip() != g["slug"]]
+    related = ""
+    if rt:
+        cards = "".join(
+            f'<a class="card" href="/{r["slug"]}/"><span class="glyph">{e(r["glyph"])}</span><h3>{e(r["nav"])}</h3><p>{e(r["card"])}</p></a>' for r in rt)
+        related += f'<section class="related"><h2>Related tools</h2><div class="cards">{cards}</div></section>'
+    if rg:
+        related += f'<section class="related"><h2>Keep reading</h2><div class="cards">{guide_cards(rg)}</div></section>'
+    updated = g.get("updated", TODAY.isoformat())
+    try:
+        shown = datetime.date.fromisoformat(updated).strftime("%B %d, %Y").replace(" 0", " ")
+    except ValueError:
+        shown = UPDATED
+    body_html = fill(g["body"])
+    body = (f'<section class="article" style="margin-top:8px">{body_html}'
+            f'<p class="muted" style="margin-top:22px">Last updated {shown}.</p></section>{ad("in_content")}{related}{ad("bottom")}')
+    ld = [
+        {"@context": "https://schema.org", "@type": "Article", "headline": g["h1"], "description": g["description"],
+         "datePublished": updated, "dateModified": updated, "mainEntityOfPage": BASE + path,
+         "author": {"@type": "Organization", "name": SITE}, "publisher": {"@type": "Organization", "name": SITE}},
+        {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": BASE + "/"},
+            {"@type": "ListItem", "position": 2, "name": "Guides", "item": BASE + "/guides/"},
+            {"@type": "ListItem", "position": 3, "name": g["h1"], "item": BASE + path}]},
+        faq_jsonld(body_html),
+    ]
+    write(path, layout(title=g["title"], desc=g["description"], path=path, h1=g["h1"], lead=g["lead"], body=body,
+                       jsonld=ld, crumb_name=g["h1"], tools=tools), "0.8")
+
+
+def build_guides_index(guides, tools):
+    body = (f'<div class="cards">{guide_cards(guides)}</div>'
+            '<p class="muted">Each guide has worked examples and links to the matching calculator.</p>')
+    write("/guides/", layout(title="Network Guides: Subnetting, CIDR, BGP and DNS Explained",
+                             desc="Practical guides for network engineers and CCNA students: subnetting, CIDR, VLSM, wildcard masks, private IP ranges, BGP and RPKI, DNS records and TCP throughput.",
+                             path="/guides/", h1="Network guides",
+                             lead="Step-by-step explanations with worked examples, written for working engineers and exam students.",
+                             body=body, crumb_name="Guides", tools=tools, ads=False), "0.7")
 
 
 # ------------------------------------------------------------------ programmatic /cidr/<prefix>/ pages
@@ -506,7 +586,12 @@ def main():
     tools = load_tools()
     for t in tools:
         build_tool(t, tools)
-    build_home(tools)
+    guides = load_guides()
+    for g in guides:
+        build_guide(g, guides, tools)
+    if guides:
+        build_guides_index(guides, tools)
+    build_home(tools, guides)
     build_info_pages(tools)
     build_prefix_pages(tools)
     build_site_files(tools)

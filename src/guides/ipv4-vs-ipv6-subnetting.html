@@ -1,0 +1,42 @@
+---
+slug: ipv4-vs-ipv6-subnetting
+title: IPv4 vs IPv6 Subnetting: Key Differences Explained
+description: How IPv6 subnetting differs from IPv4: the /64 rule, no broadcast addresses, hexadecimal prefixes, and how to plan /48 and /56 allocations.
+h1: IPv4 vs IPv6 Subnetting
+lead: IPv6 subnetting follows the same binary logic as IPv4 but is much simpler to plan. This guide covers what changes and what stays the same.
+related: cidr-calculator, ip-converter, subnet-chart
+guides: how-subnetting-works, how-many-hosts-in-a-subnet, private-ip-address-ranges
+updated: 2026-11-22
+---
+<p>Both IP versions split an address into a network prefix and a host part, and both write the split as a prefix length. The difference is scale. IPv4 has 32 bits, so every address is precious and you subnet to avoid waste. IPv6 has 128 bits, so you subnet for structure, not to save addresses.</p>
+
+<h2>The /64 convention</h2>
+<p>In IPv6 the standard size for a subnet that hosts devices is a <strong>/64</strong>. The lower 64 bits are the interface identifier, and features such as SLAAC (stateless address autoconfiguration) depend on that size. A single /64 holds 2<sup>64</sup> = 18,446,744,073,709,551,616 addresses. You do not count hosts to pick a prefix length; you give each VLAN or segment its own /64.</p>
+
+<h2>Typical allocations</h2>
+<div class="table-wrap"><table class="data"><thead><tr><th>Prefix</th><th>Typical holder</th><th>/64 subnets inside</th></tr></thead><tbody>
+<tr><td class="mono">/32</td><td>ISP or large organisation</td><td>4,294,967,296</td></tr>
+<tr><td class="mono">/48</td><td>A site or business customer</td><td>65,536</td></tr>
+<tr><td class="mono">/56</td><td>A home or small office customer</td><td>256</td></tr>
+<tr><td class="mono">/64</td><td>One network segment</td><td>1</td></tr>
+</tbody></table></div>
+<p>Allocating a /48 to a site gives 16 bits of subnet space, so you can number subnets from 0000 to ffff in the fourth group of the address.</p>
+
+<h2>Differences from IPv4 in practice</h2>
+<ul>
+<li><strong>No broadcast.</strong> IPv6 uses multicast instead, so there is no broadcast address to reserve. Only the all-zeros address in a subnet (the subnet-router anycast address) is special.</li>
+<li><strong>No host counting.</strong> You do not use 2<sup>n</sup> &minus; 2. Subnets are sized by convention.</li>
+<li><strong>Hex nibble boundaries.</strong> Each hex digit is 4 bits, so prefixes that are multiples of 4 (/48, /52, /56, /60, /64) land on a digit boundary and are easy to read.</li>
+<li><strong>Addresses are abbreviated.</strong> Leading zeros in a group are dropped, and one run of all-zero groups becomes <code>::</code>.</li>
+</ul>
+
+<h2>Point-to-point links and loopbacks</h2>
+<p>Router links are often given a /127 (RFC 6164), which avoids a problem where a packet sent to the unused address on a /64 link can be bounced between two routers. Some operators still use /64 on links for simplicity, and others use /126. Loopback addresses are a single /128.</p>
+
+<h2>A worked example</h2>
+<p>You are given <code>2001:db8:abcd::/48</code>. To create the subnet for VLAN 10, use the fourth group: <code>2001:db8:abcd:a::/64</code>. VLAN 20 can be <code>2001:db8:abcd:14::/64</code> (20 is 0x14). Writing the VLAN number in hex into the subnet field is a simple convention that keeps the plan readable. <code>2001:db8::/32</code> is the range reserved for documentation, so it is safe in examples.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>Can I use a prefix longer than /64 for a LAN?</summary><p>Technically yes, but SLAAC will not work, and some features assume a /64. Use /64 for LANs.</p></details>
+<details><summary>How many addresses are in a /48?</summary><p>2<sup>80</sup>, about 1.2 &times; 10<sup>24</sup>, which is 65,536 /64 subnets.</p></details>
+<details><summary>Do I still need NAT with IPv6?</summary><p>Usually not. Devices get globally routable addresses, and a stateful firewall provides the protection that NAT is often mistaken for.</p></details>

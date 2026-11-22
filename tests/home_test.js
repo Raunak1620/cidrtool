@@ -15,7 +15,7 @@ const base = 'http://localhost:8123';
     chk(name + ' steps rendered', (await p.locator('#steps > li').count()) === 7);
     await p.selectOption('#split-k', '2'); chk(name + ' split', /4 subnets/.test(await t('#split-out')));
     await p.fill('#need-n', '120'); chk(name + ' need 120 -> /25', /\/25/.test(await t('#need-out')));
-    chk(name + ' tool cards', (await p.locator('#tool-cards .card').count()) === 8);
+    chk(name + ' tool cards', (await p.locator('#tool-cards .card').count()) === require('fs').readdirSync(__dirname + '/../src/tools').length);
     await p.fill('#tool-search', 'dns'); { const n = await p.locator('#tool-cards .card:not([hidden])').count(); chk(name + ' card search filters', n >= 1 && n < 8, n); }
     // styling sanity: viewer input must not inherit the site's boxed input style
     const st = await p.evaluate(() => { const c = getComputedStyle(document.querySelector('#cidr')); return { bt: c.borderTopWidth, bb: c.borderBottomWidth, fs: parseFloat(c.fontSize) }; });

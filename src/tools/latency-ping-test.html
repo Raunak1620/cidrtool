@@ -1,0 +1,116 @@
+---
+slug: latency-ping-test
+order: 13
+title: Online Ping Test: Check Latency, Jitter and Packet Loss to Any Site
+description: Free online ping test that measures round-trip latency, jitter and failed requests to popular servers or your own site over HTTPS, straight from your browser.
+h1: Online Ping Test
+nav: Ping Test
+lead: Measure latency, jitter and failed requests from your own device to a server of your choice. This is an HTTPS ping that runs in your browser, so it shows what your connection really experiences.
+glyph: ms
+card: Browser-based HTTPS ping with latency, jitter and loss.
+related: speed-test, what-is-my-ip, dns-lookup
+keywords: ping test online latency jitter packet loss round trip time check
+---
+<div class="tool">
+  <div class="row">
+    <div class="field" style="flex:2 1 260px"><label for="pg-target">Target</label>
+      <select id="pg-target">
+        <option value="https://www.cloudflare.com/cdn-cgi/trace">Cloudflare (www.cloudflare.com)</option>
+        <option value="https://1.1.1.1/cdn-cgi/trace">Cloudflare DNS (1.1.1.1)</option>
+        <option value="https://www.google.com/generate_204">Google (www.google.com)</option>
+        <option value="https://www.msftconnecttest.com/connecttest.txt">Microsoft (msftconnecttest.com)</option>
+        <option value="custom">Custom host or URL…</option>
+      </select></div>
+    <div class="field" style="flex:0 1 130px"><label for="pg-count">Pings</label>
+      <select id="pg-count"><option>10</option><option selected>20</option><option>50</option></select></div>
+  </div>
+  <div class="row" id="pg-custom-row" hidden style="margin-top:8px"><div class="field"><label for="pg-custom">Host or URL</label>
+    <input id="pg-custom" type="text" placeholder="example.org or https://example.org/" spellcheck="false" autocapitalize="off"></div></div>
+  <div class="row" style="margin-top:10px"><button class="btn" id="pg-go" type="button">Start ping</button><span class="muted" id="pg-status" aria-live="polite"></span></div>
+  <div class="stats" id="pg-stats" hidden>
+    <div class="stat"><span>Minimum</span><b id="pg-min">&ndash;</b><small class="muted">ms</small></div>
+    <div class="stat"><span>Average</span><b id="pg-avg">&ndash;</b><small class="muted">ms</small></div>
+    <div class="stat"><span>Maximum</span><b id="pg-max">&ndash;</b><small class="muted">ms</small></div>
+    <div class="stat"><span>Jitter</span><b id="pg-jit">&ndash;</b><small class="muted">ms</small></div>
+    <div class="stat"><span>Failed</span><b id="pg-loss">&ndash;</b><small class="muted">% of requests</small></div>
+  </div>
+  <div id="pg-log" class="mono" style="max-height:260px;overflow:auto;font-size:.88rem" aria-live="off"></div>
+  <div id="pg-note"></div>
+</div>
+
+<script>
+(function () {
+  var sel = NK.$('#pg-target'), cnt = NK.$('#pg-count'), custom = NK.$('#pg-custom'), go = NK.$('#pg-go'), stat = NK.$('#pg-status'),
+      stats = NK.$('#pg-stats'), log = NK.$('#pg-log'), note = NK.$('#pg-note'), running = false, stopFlag = false;
+  sel.addEventListener('change', function () { NK.$('#pg-custom-row').hidden = sel.value !== 'custom'; });
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function target() {
+    if (sel.value !== 'custom') return sel.value;
+    var v = custom.value.trim(); if (!v) return null;
+    if (!/^https?:\/\//i.test(v)) v = 'https://' + v;
+    try { var u = new URL(v); if (!/^[a-z0-9.\-\[\]:]+$/i.test(u.hostname)) return null; return u.href; } catch (e) { return null; }
+  }
+  function one(url, ms) {
+    var c = new AbortController(), t = setTimeout(function () { c.abort(); }, ms), s = performance.now();
+    var sep = url.indexOf('?') < 0 ? '?' : '&';
+    return fetch(url + sep + 'nk=' + Math.random().toString(36).slice(2), { mode: 'no-cors', cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer', signal: c.signal })
+      .then(function () { clearTimeout(t); return performance.now() - s; }, function () { clearTimeout(t); return null; });
+  }
+  function show(a, total) {
+    var ok = a.filter(function (x) { return x !== null; });
+    if (!ok.length) { NK.$('#pg-loss').textContent = total ? '100' : '–'; return; }
+    var min = Math.min.apply(null, ok), max = Math.max.apply(null, ok), avg = ok.reduce(function (p, c) { return p + c; }, 0) / ok.length, j = 0;
+    for (var i = 1; i < ok.length; i++) j += Math.abs(ok[i] - ok[i - 1]);
+    NK.$('#pg-min').textContent = min.toFixed(0); NK.$('#pg-avg').textContent = avg.toFixed(0); NK.$('#pg-max').textContent = max.toFixed(0);
+    NK.$('#pg-jit').textContent = ok.length > 1 ? (j / (ok.length - 1)).toFixed(1) : '–';
+    NK.$('#pg-loss').textContent = ((total - ok.length) / total * 100).toFixed(0);
+  }
+  go.addEventListener('click', async function () {
+    if (running) { stopFlag = true; return; }
+    var url = target();
+    if (!url) { note.innerHTML = '<div class="alert err">Enter a valid host name such as <code>example.org</code>.</div>'; return; }
+    running = true; stopFlag = false; go.textContent = 'Stop'; note.innerHTML = ''; log.innerHTML = ''; stats.hidden = false;
+    var n = +cnt.value, samples = [], host = new URL(url).host;
+    stat.textContent = 'Connecting to ' + host + '…';
+    var warm = await one(url, 6000);
+    if (warm === null) {
+      note.innerHTML = '<div class="alert err">No response from <code>' + NK.esc(host) + '</code>. The site may be down, may not support HTTPS, or something (an ad blocker, VPN or firewall) is blocking the request.</div>';
+      stat.textContent = ''; running = false; go.textContent = 'Start ping'; stats.hidden = true; return;
+    }
+    log.innerHTML = '<div class="muted">Connection setup (not counted): ' + warm.toFixed(0) + ' ms</div>';
+    for (var i = 1; i <= n && !stopFlag; i++) {
+      var ms = await one(url, 4000); samples.push(ms);
+      log.insertAdjacentHTML('beforeend', '<div>' + i + ': ' + (ms === null ? '<span style="color:var(--bad)">no response</span>' : ms.toFixed(1) + ' ms') + '</div>');
+      log.scrollTop = log.scrollHeight; show(samples, samples.length); stat.textContent = i + ' of ' + n; await sleep(300);
+    }
+    stat.textContent = stopFlag ? 'Stopped.' : 'Done.';
+    var ok = samples.filter(function (x) { return x !== null; });
+    if (ok.length) note.innerHTML = '<p class="muted">Results for ' + NK.esc(host) + ' over HTTPS. See the notes below for how this differs from an ICMP ping.</p>';
+    running = false; go.textContent = 'Start ping';
+  });
+})();
+</script>
+<!--ARTICLE-->
+<h2>How this ping test works</h2>
+<p>A traditional ping sends an ICMP echo request and times the reply. Web pages cannot send ICMP, so this test sends small HTTPS requests from your browser and times how long each takes to get a response. The first request is used to open the connection and is not counted. After that, the browser reuses the connection, so each timing is close to one network round trip plus a little server processing time.</p>
+
+<h2>What the numbers mean</h2>
+<ul>
+<li><strong>Average latency</strong> is the typical round-trip time. Under 30 ms is excellent, 30 to 80 ms is fine for most uses, and above 150 ms is noticeable in calls and games.</li>
+<li><strong>Jitter</strong> is how much the latency varies between consecutive requests. A steady 40 ms is better than a line that swings between 10 and 120 ms.</li>
+<li><strong>Failed requests</strong> are requests that got no response in four seconds. Any sustained failure rate points to packet loss, a congested link or a flaky Wi-Fi connection.</li>
+</ul>
+
+<h2>How it differs from ICMP ping</h2>
+<ul>
+<li>HTTPS timings include a small amount of server processing time, so they read a few milliseconds higher than ICMP to the same host.</li>
+<li>Some networks treat ICMP differently from web traffic, so a host can answer web requests while blocking ping, or the reverse.</li>
+<li>The test cannot report a packet loss figure in the strict sense. A failed request can come from loss, a slow server or a blocked request.</li>
+</ul>
+<p>For true ICMP tests use the command line: <code>ping -c 20 example.org</code> on Linux and macOS, or <code>ping -n 20 example.org</code> on Windows.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>Why can't this tool run a real ICMP ping or a traceroute?</summary><p>Browsers do not let web pages create raw network packets or set the TTL field. Doing so would need a server that pings on your behalf, which would measure the server's connection and not yours. Use the <a href="/traceroute-analyzer/">traceroute analyzer</a> to interpret the output of the real command.</p></details>
+<details><summary>Why is the first ping not counted?</summary><p>It includes DNS lookup, the TCP handshake and the TLS handshake, which can take several round trips. Later requests reuse that connection.</p></details>
+<details><summary>Which target should I choose?</summary><p>Pick a large provider such as Cloudflare or Google to test your own connection, because they have servers close to almost everyone. Use a custom host to check the path to a specific site.</p></details>
+<details><summary>Is anything sent to your servers?</summary><p>No. Requests go from your browser straight to the target, and nothing is stored.</p></details>

@@ -119,4 +119,60 @@ t('ipv6 info', () => {
   assert.strictEqual(NK.ipv6Kind(NK.parseIpv6('ff02::1')), 'Multicast');
   assert.strictEqual(NK.fmtBig(1n << 64n), '18,446,744,073,709,551,616');
 });
+
+t('range to cidr', () => {
+  const f = (a, b) => NK.rangeToCidrs(NK.ipv4ToInt(a), NK.ipv4ToInt(b)).map(x => NK.intToIpv4(x.net) + '/' + x.prefix);
+  assert.deepStrictEqual(f('10.0.0.0', '10.0.0.255'), ['10.0.0.0/24']);
+  assert.deepStrictEqual(f('10.0.0.5', '10.0.0.5'), ['10.0.0.5/32']);
+  assert.deepStrictEqual(f('192.168.1.10', '192.168.1.20'), ['192.168.1.10/31', '192.168.1.12/30', '192.168.1.16/30', '192.168.1.20/32']);
+  assert.deepStrictEqual(f('0.0.0.0', '255.255.255.255'), ['0.0.0.0/0']);
+  assert.deepStrictEqual(f('128.0.0.0', '255.255.255.255'), ['128.0.0.0/1']);
+  assert.deepStrictEqual(f('10.0.0.1', '10.0.0.6'), ['10.0.0.1/32', '10.0.0.2/31', '10.0.0.4/31', '10.0.0.6/32']);
+  assert.deepStrictEqual(f('10.0.0.0', '10.0.3.255'), ['10.0.0.0/22']);
+  assert.deepStrictEqual(f('10.0.0.0', '10.0.5.255'), ['10.0.0.0/22', '10.0.4.0/23']);
+  // random cross-check: blocks are contiguous, aligned and cover exactly the range
+  for (let i = 0; i < 300; i++) {
+    const a = Math.floor(Math.random() * 4294967296), len = Math.floor(Math.random() * 70000) + 1, b = Math.min(4294967295, a + len);
+    const L = NK.rangeToCidrs(a, b); let cur = a;
+    L.forEach(x => { assert.strictEqual(x.net, cur); const sz = Math.pow(2, 32 - x.prefix); assert.strictEqual(x.net % sz, 0); cur += sz; });
+    assert.strictEqual(cur, b + 1);
+  }
+});
+t('host prefix + vlsm', () => {
+  assert.strictEqual(NK.hostPrefix(50), 26); assert.strictEqual(NK.hostPrefix(62), 26); assert.strictEqual(NK.hostPrefix(63), 25);
+  assert.strictEqual(NK.hostPrefix(2), 30); assert.strictEqual(NK.hostPrefix(1), 30); assert.strictEqual(NK.hostPrefix(2, true), 31);
+  assert.strictEqual(NK.hostPrefix(254), 24); assert.strictEqual(NK.hostPrefix(255), 23);
+  const base = NK.ipv4ToInt('192.168.10.0');
+  const r = NK.vlsmPlan(base, 24, [{ name: 'Mgmt', hosts: 10 }, { name: 'Sales', hosts: 60 }, { name: 'WAN', hosts: 2 }, { name: 'Eng', hosts: 28 }], false);
+  assert.deepStrictEqual(r.allocated.map(x => x.name + ' ' + NK.intToIpv4(x.net) + '/' + x.prefix),
+    ['Sales 192.168.10.0/26', 'Eng 192.168.10.64/27', 'Mgmt 192.168.10.96/28', 'WAN 192.168.10.112/30']);
+  assert.strictEqual(r.failed.length, 0); assert.strictEqual(NK.intToIpv4(r.nextFree), '192.168.10.116'); assert.strictEqual(r.freeLeft, 140);
+  const over = NK.vlsmPlan(base, 24, [{ name: 'A', hosts: 120 }, { name: 'B', hosts: 120 }, { name: 'C', hosts: 10 }], false);
+  assert.deepStrictEqual(over.failed.map(x => x.name), ['C']); assert.strictEqual(over.allocated.length, 2);
+  assert.strictEqual(NK.vlsmPlan(base, 24, [{ name: 'Big', hosts: 300 }], false).failed.length, 1);
+});
+t('summarize cidrs', () => {
+  const P = x => { const sp = NK.parseV4Spec(x); const i = NK.cidr4Info(sp.ip, sp.prefix); return { net: i.network, prefix: i.prefix }; };
+  const run = l => NK.summarizeCidrs(l.map(P));
+  const fm = r => r.merged.map(x => NK.intToIpv4(x.net) + '/' + x.prefix);
+  let r = run(['192.168.0.0/24', '192.168.1.0/24', '192.168.2.0/24', '192.168.3.0/24']);
+  assert.deepStrictEqual(fm(r), ['192.168.0.0/22']); assert.strictEqual(NK.intToIpv4(r.supernet.net) + '/' + r.supernet.prefix, '192.168.0.0/22'); assert.strictEqual(r.extra, 0);
+  r = run(['10.0.0.0/24', '10.0.1.0/24', '10.0.2.0/24']);
+  assert.deepStrictEqual(fm(r), ['10.0.0.0/23', '10.0.2.0/24']); assert.strictEqual(NK.intToIpv4(r.supernet.net) + '/' + r.supernet.prefix, '10.0.0.0/22'); assert.strictEqual(r.extra, 256);
+  r = run(['10.0.0.0/8', '10.1.2.0/24']); assert.deepStrictEqual(fm(r), ['10.0.0.0/8']);
+  r = run(['10.0.0.0/24', '10.0.0.0/24']); assert.deepStrictEqual(fm(r), ['10.0.0.0/24']);
+  r = run(['172.16.0.0/24', '172.31.255.0/24']); assert.strictEqual(r.supernet.prefix, 12);
+  r = run(['0.0.0.0/1', '128.0.0.0/1']); assert.deepStrictEqual(fm(r), ['0.0.0.0/0']);
+  r = run(['1.1.1.1/32']); assert.strictEqual(r.supernet.prefix, 32);
+  // random: merged set covers exactly the same addresses as the inputs; supernet contains all
+  for (let i = 0; i < 200; i++) {
+    const l = []; for (let k = 0; k < 6; k++) { const p = 20 + Math.floor(Math.random() * 10), base = 167772160 + Math.floor(Math.random() * 4096) * 256; const sz = Math.pow(2, 32 - p); l.push({ net: base - base % sz, prefix: p }); }
+    const res = NK.summarizeCidrs(l), set = new Set();
+    l.forEach(x => { for (let a = x.net; a < x.net + Math.pow(2, 32 - x.prefix); a += 256) set.add(a); });
+    const set2 = new Set(); res.merged.forEach(x => { for (let a = x.net; a < x.net + Math.pow(2, 32 - x.prefix); a += 256) set2.add(a); });
+    assert.deepStrictEqual([...set].sort((a, b) => a - b), [...set2].sort((a, b) => a - b));
+    const sz = Math.pow(2, 32 - res.supernet.prefix); assert.strictEqual(res.covered + res.extra, sz);
+    l.forEach(x => assert.ok(x.net >= res.supernet.net && x.net + Math.pow(2, 32 - x.prefix) <= res.supernet.net + sz));
+  }
+});
 console.log('OK — ' + n + ' test groups passed');

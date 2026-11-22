@@ -15,6 +15,10 @@ lead: Last updated {{UPDATED}}.
 <li><strong>What is my IP</strong>: your browser requests your public IP address from ipify (api.ipify.org and api64.ipify.org) and location and network details from ipwho.is, with ipapi.co as a fallback. These services necessarily receive your IP address.</li>
 <li><strong>DNS lookup</strong>: queries go to Cloudflare (cloudflare-dns.com) or Google Public DNS (dns.google) over HTTPS, according to the resolver you pick. They receive the name you query and your IP address.</li>
 <li><strong>BGP and ASN lookup</strong>: queries go to the RIPEstat data API (stat.ripe.net). It receives the ASN, IP or prefix you query and your IP address.</li>
+<li><strong>Speed test</strong>: your browser downloads from and uploads test data to Cloudflare's speed test servers (speed.cloudflare.com). Cloudflare receives your IP address and the test traffic.</li>
+<li><strong>Ping test</strong>: your browser sends small HTTPS requests directly to the server you choose (for example Cloudflare, Google or Microsoft, or a host you type). That server receives your IP address.</li>
+<li><strong>Open port checker</strong>: our hosting provider runs a small function that tries to connect to the ports you list on the public IP address of your own connection. It does not accept any other target, and we do not store your IP address or the results. Standard request logs kept by the hosting provider (Vercel) apply.</li>
+<li><strong>Traceroute analyzer and route summarization</strong>: these run entirely in your browser, and what you paste is not sent anywhere.</li>
 </ul>
 <p>Each of these providers has its own privacy policy that governs how they handle requests.</p>
 <h2>Cookies, local storage and advertising</h2>

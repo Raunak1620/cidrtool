@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Online Ping Test: Check Latency, Jitter and Packet Loss to Any Site | NetKit</title>
+<meta name="description" content="Free online ping test that measures round-trip latency, jitter and failed requests to popular servers or your own site over HTTPS, straight from your browser.">
+<link rel="canonical" href="https://ipsubnetcalculatorcidr.vercel.app/latency-ping-test/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NetKit">
+<meta property="og:title" content="Online Ping Test: Check Latency, Jitter and Packet Loss to Any Site | NetKit">
+<meta property="og:description" content="Free online ping test that measures round-trip latency, jitter and failed requests to popular servers or your own site over HTTPS, straight from your browser.">
+<meta property="og:url" content="https://ipsubnetcalculatorcidr.vercel.app/latency-ping-test/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0b6bde">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem('nk-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="stylesheet" href="/assets/css/style.css?v=858db731">
+<meta name="google-site-verification" content="oRgN_HmHnESYTVTZSc6DEeby8Fb9GwQx34rpckJhfDA"><meta name="google-adsense-account" content="ca-pub-2676656110030246"><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2676656110030246" crossorigin="anonymous"></script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "Online Ping Test", "url": "https://ipsubnetcalculatorcidr.vercel.app/latency-ping-test/", "applicationCategory": "DeveloperApplication", "operatingSystem": "Any", "browserRequirements": "Requires JavaScript", "description": "Free online ping test that measures round-trip latency, jitter and failed requests to popular servers or your own site over HTTPS, straight from your browser.", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://ipsubnetcalculatorcidr.vercel.app/"}, {"@type": "ListItem", "position": 2, "name": "Ping Test", "item": "https://ipsubnetcalculatorcidr.vercel.app/latency-ping-test/"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Why can't this tool run a real ICMP ping or a traceroute?", "acceptedAnswer": {"@type": "Answer", "text": "Browsers do not let web pages create raw network packets or set the TTL field. Doing so would need a server that pings on your behalf, which would measure the server's connection and not yours. Use the traceroute analyzer to interpret the output of the real command."}}, {"@type": "Question", "name": "Why is the first ping not counted?", "acceptedAnswer": {"@type": "Answer", "text": "It includes DNS lookup, the TCP handshake and the TLS handshake, which can take several round trips. Later requests reuse that connection."}}, {"@type": "Question", "name": "Which target should I choose?", "acceptedAnswer": {"@type": "Answer", "text": "Pick a large provider such as Cloudflare or Google to test your own connection, because they have servers close to almost everyone. Use a custom host to check the path to a specific site."}}, {"@type": "Question", "name": "Is anything sent to your servers?", "acceptedAnswer": {"@type": "Answer", "text": "No. Requests go from your browser straight to the target, and nothing is stored."}}]}</script>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">/24</span>NetKit</a>
+<div class="header-actions"><button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">Theme</button></div>
+</div></header>
+<nav class="tabs" aria-label="Tools"><div class="wrap"><a class="tab" href="/what-is-my-ip/">My IP</a><a class="tab" href="/cidr-calculator/">CIDR Calculator</a><a class="tab" href="/dns-lookup/">DNS Lookup</a><a class="tab" href="/bgp-asn-lookup/">BGP / ASN</a><a class="tab" href="/subnet-chart/">Subnet Chart</a><a class="tab" href="/port-numbers/">Port Numbers</a><a class="tab" href="/ip-converter/">IP Converter</a><a class="tab" href="/bandwidth-calculator/">Bandwidth Calc</a><a class="tab" href="/wildcard-mask-calculator/">Wildcard Mask</a><a class="tab" href="/vlsm-calculator/">VLSM Calculator</a><a class="tab" href="/route-summarization/">Route Summary</a><a class="tab" href="/speed-test/">Speed Test</a><a class="tab" href="/latency-ping-test/" aria-current="page">Ping Test</a><a class="tab" href="/traceroute-analyzer/">Traceroute</a><a class="tab" href="/open-port-checker/">Port Checker</a><a class="tab" href="/guides/">Guides</a></div></nav>
+<script src="/assets/js/net.js?v=a6fe9476"></script>
+<script src="/assets/js/app.js?v=411fe5fd"></script>
+<main><div class="wrap"><div class="layout"><div class="content"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> &rsaquo; Ping Test</nav><h1>Online Ping Test</h1><p class="lead">Measure latency, jitter and failed requests from your own device to a server of your choice. This is an HTTPS ping that runs in your browser, so it shows what your connection really experiences.</p><div class="tool">
+  <div class="row">
+    <div class="field" style="flex:2 1 260px"><label for="pg-target">Target</label>
+      <select id="pg-target">
+        <option value="https://www.cloudflare.com/cdn-cgi/trace">Cloudflare (www.cloudflare.com)</option>
+        <option value="https://1.1.1.1/cdn-cgi/trace">Cloudflare DNS (1.1.1.1)</option>
+        <option value="https://www.google.com/generate_204">Google (www.google.com)</option>
+        <option value="https://www.msftconnecttest.com/connecttest.txt">Microsoft (msftconnecttest.com)</option>
+        <option value="custom">Custom host or URL…</option>
+      </select></div>
+    <div class="field" style="flex:0 1 130px"><label for="pg-count">Pings</label>
+      <select id="pg-count"><option>10</option><option selected>20</option><option>50</option></select></div>
+  </div>
+  <div class="row" id="pg-custom-row" hidden style="margin-top:8px"><div class="field"><label for="pg-custom">Host or URL</label>
+    <input id="pg-custom" type="text" placeholder="example.org or https://example.org/" spellcheck="false" autocapitalize="off"></div></div>
+  <div class="row" style="margin-top:10px"><button class="btn" id="pg-go" type="button">Start ping</button><span class="muted" id="pg-status" aria-live="polite"></span></div>
+  <div class="stats" id="pg-stats" hidden>
+    <div class="stat"><span>Minimum</span><b id="pg-min">&ndash;</b><small class="muted">ms</small></div>
+    <div class="stat"><span>Average</span><b id="pg-avg">&ndash;</b><small class="muted">ms</small></div>
+    <div class="stat"><span>Maximum</span><b id="pg-max">&ndash;</b><small class="muted">ms</small></div>
+    <div class="stat"><span>Jitter</span><b id="pg-jit">&ndash;</b><small class="muted">ms</small></div>
+    <div class="stat"><span>Failed</span><b id="pg-loss">&ndash;</b><small class="muted">% of requests</small></div>
+  </div>
+  <div id="pg-log" class="mono" style="max-height:260px;overflow:auto;font-size:.88rem" aria-live="off"></div>
+  <div id="pg-note"></div>
+</div>
+
+<script>
+(function () {
+  var sel = NK.$('#pg-target'), cnt = NK.$('#pg-count'), custom = NK.$('#pg-custom'), go = NK.$('#pg-go'), stat = NK.$('#pg-status'),
+      stats = NK.$('#pg-stats'), log = NK.$('#pg-log'), note = NK.$('#pg-note'), running = false, stopFlag = false;
+  sel.addEventListener('change', function () { NK.$('#pg-custom-row').hidden = sel.value !== 'custom'; });
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function target() {
+    if (sel.value !== 'custom') return sel.value;
+    var v = custom.value.trim(); if (!v) return null;
+    if (!/^https?:\/\//i.test(v)) v = 'https://' + v;
+    try { var u = new URL(v); if (!/^[a-z0-9.\-\[\]:]+$/i.test(u.hostname)) return null; return u.href; } catch (e) { return null; }
+  }
+  function one(url, ms) {
+    var c = new AbortController(), t = setTimeout(function () { c.abort(); }, ms), s = performance.now();
+    var sep = url.indexOf('?') < 0 ? '?' : '&';
+    return fetch(url + sep + 'nk=' + Math.random().toString(36).slice(2), { mode: 'no-cors', cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer', signal: c.signal })
+      .then(function () { clearTimeout(t); return performance.now() - s; }, function () { clearTimeout(t); return null; });
+  }
+  function show(a, total) {
+    var ok = a.filter(function (x) { return x !== null; });
+    if (!ok.length) { NK.$('#pg-loss').textContent = total ? '100' : '–'; return; }
+    var min = Math.min.apply(null, ok), max = Math.max.apply(null, ok), avg = ok.reduce(function (p, c) { return p + c; }, 0) / ok.length, j = 0;
+    for (var i = 1; i < ok.length; i++) j += Math.abs(ok[i] - ok[i - 1]);
+    NK.$('#pg-min').textContent = min.toFixed(0); NK.$('#pg-avg').textContent = avg.toFixed(0); NK.$('#pg-max').textContent = max.toFixed(0);
+    NK.$('#pg-jit').textContent = ok.length > 1 ? (j / (ok.length - 1)).toFixed(1) : '–';
+    NK.$('#pg-loss').textContent = ((total - ok.length) / total * 100).toFixed(0);
+  }
+  go.addEventListener('click', async function () {
+    if (running) { stopFlag = true; return; }
+    var url = target();
+    if (!url) { note.innerHTML = '<div class="alert err">Enter a valid host name such as <code>example.org</code>.</div>'; return; }
+    running = true; stopFlag = false; go.textContent = 'Stop'; note.innerHTML = ''; log.innerHTML = ''; stats.hidden = false;
+    var n = +cnt.value, samples = [], host = new URL(url).host;
+    stat.textContent = 'Connecting to ' + host + '…';
+    var warm = await one(url, 6000);
+    if (warm === null) {
+      note.innerHTML = '<div class="alert err">No response from <code>' + NK.esc(host) + '</code>. The site may be down, may not support HTTPS, or something (an ad blocker, VPN or firewall) is blocking the request.</div>';
+      stat.textContent = ''; running = false; go.textContent = 'Start ping'; stats.hidden = true; return;
+    }
+    log.innerHTML = '<div class="muted">Connection setup (not counted): ' + warm.toFixed(0) + ' ms</div>';
+    for (var i = 1; i <= n && !stopFlag; i++) {
+      var ms = await one(url, 4000); samples.push(ms);
+      log.insertAdjacentHTML('beforeend', '<div>' + i + ': ' + (ms === null ? '<span style="color:var(--bad)">no response</span>' : ms.toFixed(1) + ' ms') + '</div>');
+      log.scrollTop = log.scrollHeight; show(samples, samples.length); stat.textContent = i + ' of ' + n; await sleep(300);
+    }
+    stat.textContent = stopFlag ? 'Stopped.' : 'Done.';
+    var ok = samples.filter(function (x) { return x !== null; });
+    if (ok.length) note.innerHTML = '<p class="muted">Results for ' + NK.esc(host) + ' over HTTPS. See the notes below for how this differs from an ICMP ping.</p>';
+    running = false; go.textContent = 'Start ping';
+  });
+})();
+</script><section class="article"><h2>How this ping test works</h2>
+<p>A traditional ping sends an ICMP echo request and times the reply. Web pages cannot send ICMP, so this test sends small HTTPS requests from your browser and times how long each takes to get a response. The first request is used to open the connection and is not counted. After that, the browser reuses the connection, so each timing is close to one network round trip plus a little server processing time.</p>
+
+<h2>What the numbers mean</h2>
+<ul>
+<li><strong>Average latency</strong> is the typical round-trip time. Under 30 ms is excellent, 30 to 80 ms is fine for most uses, and above 150 ms is noticeable in calls and games.</li>
+<li><strong>Jitter</strong> is how much the latency varies between consecutive requests. A steady 40 ms is better than a line that swings between 10 and 120 ms.</li>
+<li><strong>Failed requests</strong> are requests that got no response in four seconds. Any sustained failure rate points to packet loss, a congested link or a flaky Wi-Fi connection.</li>
+</ul>
+
+<h2>How it differs from ICMP ping</h2>
+<ul>
+<li>HTTPS timings include a small amount of server processing time, so they read a few milliseconds higher than ICMP to the same host.</li>
+<li>Some networks treat ICMP differently from web traffic, so a host can answer web requests while blocking ping, or the reverse.</li>
+<li>The test cannot report a packet loss figure in the strict sense. A failed request can come from loss, a slow server or a blocked request.</li>
+</ul>
+<p>For true ICMP tests use the command line: <code>ping -c 20 example.org</code> on Linux and macOS, or <code>ping -n 20 example.org</code> on Windows.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>Why can't this tool run a real ICMP ping or a traceroute?</summary><p>Browsers do not let web pages create raw network packets or set the TTL field. Doing so would need a server that pings on your behalf, which would measure the server's connection and not yours. Use the <a href="/traceroute-analyzer/">traceroute analyzer</a> to interpret the output of the real command.</p></details>
+<details><summary>Why is the first ping not counted?</summary><p>It includes DNS lookup, the TCP handshake and the TLS handshake, which can take several round trips. Later requests reuse that connection.</p></details>
+<details><summary>Which target should I choose?</summary><p>Pick a large provider such as Cloudflare or Google to test your own connection, because they have servers close to almost everyone. Use a custom host to check the path to a specific site.</p></details>
+<details><summary>Is anything sent to your servers?</summary><p>No. Requests go from your browser straight to the target, and nothing is stored.</p></details><p class="muted" style="margin-top:22px">Last reviewed November 22, 2026.</p></section><section class="related"><h2>Related tools</h2><div class="cards"><a class="card" href="/speed-test/"><span class="glyph">Mb</span><h3>Speed Test</h3><p>Download, upload, latency and jitter measured from your browser.</p></a><a class="card" href="/what-is-my-ip/"><span class="glyph">IP</span><h3>My IP</h3><p>Your public IPv4 and IPv6, ISP, ASN and location. Look up any IP.</p></a><a class="card" href="/dns-lookup/"><span class="glyph">DNS</span><h3>DNS Lookup</h3><p>A, AAAA, MX, TXT, NS, CAA and more. Compare resolvers and reverse lookups.</p></a></div></section></div></div></div></main>
+<footer class="site-footer"><div class="wrap">
+<div class="cols">
+<div><h4>NetKit</h4><p>Free online tools for network engineers. Calculators run in your browser; lookups use public APIs.</p></div>
+<div><h4>Tools</h4><ul><li><a href="/what-is-my-ip/">My IP</a></li><li><a href="/cidr-calculator/">CIDR Calculator</a></li><li><a href="/dns-lookup/">DNS Lookup</a></li><li><a href="/bgp-asn-lookup/">BGP / ASN</a></li><li><a href="/subnet-chart/">Subnet Chart</a></li><li><a href="/port-numbers/">Port Numbers</a></li><li><a href="/ip-converter/">IP Converter</a></li><li><a href="/bandwidth-calculator/">Bandwidth Calc</a></li><li><a href="/wildcard-mask-calculator/">Wildcard Mask</a></li><li><a href="/vlsm-calculator/">VLSM Calculator</a></li><li><a href="/route-summarization/">Route Summary</a></li><li><a href="/speed-test/">Speed Test</a></li><li><a href="/latency-ping-test/">Ping Test</a></li><li><a href="/traceroute-analyzer/">Traceroute</a></li><li><a href="/open-port-checker/">Port Checker</a></li></ul></div>
+<div><h4>Company</h4><ul><li><a href="/guides/">Guides</a></li><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+</div>
+<p class="fine">&copy; 2026 NetKit. Results are provided for information only; verify before using them in production changes.</p>
+</div></footer>
+</body>
+</html>

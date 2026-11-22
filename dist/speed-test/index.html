@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Internet Speed Test: Download, Upload, Latency and Jitter | NetKit</title>
+<meta name="description" content="Free browser-based internet speed test. Measure download speed, upload speed, latency and jitter against the nearest Cloudflare edge, with no app to install.">
+<link rel="canonical" href="https://ipsubnetcalculatorcidr.vercel.app/speed-test/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NetKit">
+<meta property="og:title" content="Internet Speed Test: Download, Upload, Latency and Jitter | NetKit">
+<meta property="og:description" content="Free browser-based internet speed test. Measure download speed, upload speed, latency and jitter against the nearest Cloudflare edge, with no app to install.">
+<meta property="og:url" content="https://ipsubnetcalculatorcidr.vercel.app/speed-test/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0b6bde">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem('nk-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="stylesheet" href="/assets/css/style.css?v=858db731">
+<meta name="google-site-verification" content="oRgN_HmHnESYTVTZSc6DEeby8Fb9GwQx34rpckJhfDA"><meta name="google-adsense-account" content="ca-pub-2676656110030246"><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2676656110030246" crossorigin="anonymous"></script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "Internet Speed Test", "url": "https://ipsubnetcalculatorcidr.vercel.app/speed-test/", "applicationCategory": "DeveloperApplication", "operatingSystem": "Any", "browserRequirements": "Requires JavaScript", "description": "Free browser-based internet speed test. Measure download speed, upload speed, latency and jitter against the nearest Cloudflare edge, with no app to install.", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://ipsubnetcalculatorcidr.vercel.app/"}, {"@type": "ListItem", "position": 2, "name": "Speed Test", "item": "https://ipsubnetcalculatorcidr.vercel.app/speed-test/"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How much data does the test use?", "acceptedAnswer": {"@type": "Answer", "text": "On a fast connection it can use 100 to 200 MB or more, because it runs for a fixed time and not a fixed size. Slow connections use less. Avoid running it on a metered mobile connection."}}, {"@type": "Question", "name": "Is my data sent to this website?", "acceptedAnswer": {"@type": "Answer", "text": "No. Your browser connects directly to Cloudflare's speed test servers, and the results are calculated on your device."}}, {"@type": "Question", "name": "Why do other speed tests show different numbers?", "acceptedAnswer": {"@type": "Answer", "text": "Different tests use different servers, numbers of connections and durations. Results from the same test on the same network are the best to compare."}}, {"@type": "Question", "name": "What is a good speed?", "acceptedAnswer": {"@type": "Answer", "text": "For one person streaming HD video, about 10 Mbps is enough, and 4K needs around 25 Mbps. A household with several users benefits from 100 Mbps or more, and upload matters for video calls and cloud backups."}}]}</script>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">/24</span>NetKit</a>
+<div class="header-actions"><button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">Theme</button></div>
+</div></header>
+<nav class="tabs" aria-label="Tools"><div class="wrap"><a class="tab" href="/what-is-my-ip/">My IP</a><a class="tab" href="/cidr-calculator/">CIDR Calculator</a><a class="tab" href="/dns-lookup/">DNS Lookup</a><a class="tab" href="/bgp-asn-lookup/">BGP / ASN</a><a class="tab" href="/subnet-chart/">Subnet Chart</a><a class="tab" href="/port-numbers/">Port Numbers</a><a class="tab" href="/ip-converter/">IP Converter</a><a class="tab" href="/bandwidth-calculator/">Bandwidth Calc</a><a class="tab" href="/wildcard-mask-calculator/">Wildcard Mask</a><a class="tab" href="/vlsm-calculator/">VLSM Calculator</a><a class="tab" href="/route-summarization/">Route Summary</a><a class="tab" href="/speed-test/" aria-current="page">Speed Test</a><a class="tab" href="/latency-ping-test/">Ping Test</a><a class="tab" href="/traceroute-analyzer/">Traceroute</a><a class="tab" href="/open-port-checker/">Port Checker</a><a class="tab" href="/guides/">Guides</a></div></nav>
+<script src="/assets/js/net.js?v=a6fe9476"></script>
+<script src="/assets/js/app.js?v=411fe5fd"></script>
+<main><div class="wrap"><div class="layout"><div class="content"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> &rsaquo; Speed Test</nav><h1>Internet Speed Test</h1><p class="lead">Measure your download and upload speed, latency and jitter directly from your browser. The test runs against the nearest Cloudflare edge server.</p><div class="tool">
+  <div class="row"><button class="btn" id="st-go" type="button">Start test</button><span class="muted" id="st-phase" aria-live="polite">Ready. The test uses about 100 to 200 MB of data on a fast connection.</span></div>
+  <div class="bar" aria-hidden="true"><i id="st-bar"></i></div>
+  <div class="stats">
+    <div class="stat"><span>Download</span><b id="st-dl">&ndash;</b><small class="muted">Mbps</small></div>
+    <div class="stat"><span>Upload</span><b id="st-ul">&ndash;</b><small class="muted">Mbps</small></div>
+    <div class="stat"><span>Latency</span><b id="st-lat">&ndash;</b><small class="muted">ms (median)</small></div>
+    <div class="stat"><span>Jitter</span><b id="st-jit">&ndash;</b><small class="muted">ms</small></div>
+  </div>
+  <div id="st-note" aria-live="polite"></div>
+</div>
+
+<script>
+(function () {
+  var BASE = 'https://speed.cloudflare.com', go = NK.$('#st-go'), phase = NK.$('#st-phase'), bar = NK.$('#st-bar'), note = NK.$('#st-note');
+  var running = false, ctl = null;
+  function set(id, v) { NK.$(id).textContent = v; }
+  function fmt(mbps) { return mbps >= 100 ? mbps.toFixed(0) : mbps.toFixed(1); }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  async function latency(n) {
+    var t = [];
+    for (var i = 0; i < n; i++) {
+      var s = performance.now();
+      try { var r = await fetch(BASE + '/__down?bytes=0&r=' + Math.random(), { cache: 'no-store', signal: ctl.signal }); await r.arrayBuffer(); } catch (e) { if (ctl.signal.aborted) throw e; continue; }
+      if (i > 0) t.push(performance.now() - s); // first request includes connection setup
+    }
+    if (t.length < 3) throw new Error('Could not reach the speed test server. An ad blocker, VPN or firewall may be blocking speed.cloudflare.com.');
+    var sorted = t.slice().sort(function (a, b) { return a - b; }), med = sorted[Math.floor(sorted.length / 2)], j = 0;
+    for (var k = 1; k < t.length; k++) j += Math.abs(t[k] - t[k - 1]);
+    return { med: med, jitter: j / (t.length - 1) };
+  }
+
+  async function download(ms, onRate) {
+    var total = 0, start = performance.now(), warm = 1000, warmBytes = 0, warmDone = false, stop = start + ms, end = start;
+    async function one() {
+      while (performance.now() < stop) {
+        var r = await fetch(BASE + '/__down?bytes=25000000&r=' + Math.random(), { cache: 'no-store', signal: ctl.signal }), rd = r.body.getReader();
+        for (;;) {
+          var x = await rd.read(); if (x.done) break;
+          total += x.value.length; var now = performance.now();
+          if (!warmDone && now - start >= warm) { warmDone = true; warmBytes = total; warm = now - start; }
+          if (warmDone) onRate((total - warmBytes) * 8 / ((now - start - warm) / 1000) / 1e6, (now - start) / ms);
+          if (now >= stop) { end = now; try { await rd.cancel(); } catch (e) {} return; }
+        }
+      }
+    }
+    await Promise.all([one(), one(), one(), one()]);
+    end = Math.max(end, performance.now() - 0);
+    return (total - warmBytes) * 8 / ((Math.min(end, stop + 500) - start - warm) / 1000) / 1e6;
+  }
+
+  async function upload(ms, onRate) {
+    var chunk = new Uint8Array(2000000), sent = 0, start = performance.now(), stop = start + ms;
+    async function one() {
+      while (performance.now() < stop) {
+        await fetch(BASE + '/__up', { method: 'POST', body: chunk, cache: 'no-store', signal: ctl.signal });
+        sent += chunk.length; var now = performance.now();
+        onRate(sent * 8 / ((now - start) / 1000) / 1e6, (now - start) / ms);
+      }
+    }
+    await Promise.all([one(), one(), one()]);
+    return sent * 8 / ((performance.now() - start) / 1000) / 1e6;
+  }
+
+  go.addEventListener('click', async function () {
+    if (running) { if (ctl) ctl.abort(); return; }
+    running = true; ctl = new AbortController(); go.textContent = 'Stop'; note.innerHTML = '';
+    ['#st-dl', '#st-ul', '#st-lat', '#st-jit'].forEach(function (i) { set(i, '–'); }); bar.style.width = '0';
+    try {
+      phase.textContent = 'Measuring latency…';
+      var l = await latency(11); set('#st-lat', l.med.toFixed(0)); set('#st-jit', l.jitter.toFixed(1)); bar.style.width = '10%';
+      phase.textContent = 'Testing download…';
+      var d = await download(8000, function (m, p) { set('#st-dl', fmt(m)); bar.style.width = (10 + p * 45) + '%'; });
+      set('#st-dl', fmt(d)); bar.style.width = '55%';
+      phase.textContent = 'Testing upload…';
+      var u = await upload(6000, function (m, p) { set('#st-ul', fmt(m)); bar.style.width = (55 + p * 45) + '%'; });
+      set('#st-ul', fmt(u)); bar.style.width = '100%'; phase.textContent = 'Done.';
+      note.innerHTML = '<div class="alert ok">Download ' + fmt(d) + ' Mbps, upload ' + fmt(u) + ' Mbps, latency ' + l.med.toFixed(0) + ' ms.</div>' +
+        '<p class="muted">Megabits per second. Divide by 8 for megabytes per second (' + fmt(d / 8) + ' MB/s down). Use the <a href="/bandwidth-calculator/">bandwidth calculator</a> to estimate transfer times.</p>';
+    } catch (e) {
+      phase.textContent = (ctl && ctl.signal.aborted) ? 'Stopped.' : 'Test failed.';
+      if (!(ctl && ctl.signal.aborted)) note.innerHTML = '<div class="alert err">' + NK.esc(e && e.message ? e.message : 'Unexpected error') + '</div>';
+    }
+    running = false; go.textContent = 'Run again';
+  });
+})();
+</script><section class="article"><h2>How this speed test works</h2>
+<p>The test runs in three steps against Cloudflare's public speed test endpoints, which are served from the edge location nearest to you.</p>
+<ol>
+<li><strong>Latency and jitter.</strong> It sends a series of empty requests and records how long each round trip takes. Latency is the median, and jitter is the average difference between consecutive results. The first request is ignored because it includes the time to open the connection.</li>
+<li><strong>Download.</strong> It opens four parallel connections, downloads data for eight seconds and ignores the first second while TCP ramps up. Speed is the bytes received divided by the time.</li>
+<li><strong>Upload.</strong> It sends data over three parallel connections for six seconds and measures how much was accepted.</li>
+</ol>
+
+<h2>Reading the results</h2>
+<ul>
+<li><strong>Mbps versus MB/s.</strong> Speeds are quoted in megabits per second. A 500 Mbps line downloads at most about 62 megabytes per second.</li>
+<li><strong>Latency.</strong> Under 30 ms is good for most things, and under 20 ms is ideal for gaming. Wi-Fi and distance to the server both add to it.</li>
+<li><strong>Jitter.</strong> Jitter above roughly 30 ms affects voice and video calls even when the average latency is fine.</li>
+</ul>
+
+<h2>Why your result may be lower than your plan</h2>
+<ul>
+<li><strong>Wi-Fi.</strong> Test on a wired connection to measure the line, not the wireless link.</li>
+<li><strong>Other traffic.</strong> Backups, streaming and other devices share the same line.</li>
+<li><strong>Distance and routing.</strong> The test measures the path to a nearby server. A single download from a far-away site can be slower, as explained in the <a href="/guides/bandwidth-delay-product-and-tcp-throughput/">bandwidth-delay product guide</a>.</li>
+<li><strong>Browser limits.</strong> A browser test is accurate to a few hundred Mbps and can under-report multi-gigabit links, because the browser and CPU become the limit.</li>
+<li><strong>VPNs and ad blockers.</strong> A VPN adds its own route and overhead, and some blockers stop the test from reaching the server.</li>
+</ul>
+
+<h2>Frequently asked questions</h2>
+<details><summary>How much data does the test use?</summary><p>On a fast connection it can use 100 to 200 MB or more, because it runs for a fixed time and not a fixed size. Slow connections use less. Avoid running it on a metered mobile connection.</p></details>
+<details><summary>Is my data sent to this website?</summary><p>No. Your browser connects directly to Cloudflare's speed test servers, and the results are calculated on your device.</p></details>
+<details><summary>Why do other speed tests show different numbers?</summary><p>Different tests use different servers, numbers of connections and durations. Results from the same test on the same network are the best to compare.</p></details>
+<details><summary>What is a good speed?</summary><p>For one person streaming HD video, about 10 Mbps is enough, and 4K needs around 25 Mbps. A household with several users benefits from 100 Mbps or more, and upload matters for video calls and cloud backups.</p></details><p class="muted" style="margin-top:22px">Last reviewed November 22, 2026.</p></section><section class="related"><h2>Related tools</h2><div class="cards"><a class="card" href="/bandwidth-calculator/"><span class="glyph">Mb/s</span><h3>Bandwidth Calc</h3><p>Transfer time, required bandwidth, bandwidth-delay product and TCP throughput.</p></a><a class="card" href="/latency-ping-test/"><span class="glyph">ms</span><h3>Ping Test</h3><p>Browser-based HTTPS ping with latency, jitter and loss.</p></a><a class="card" href="/what-is-my-ip/"><span class="glyph">IP</span><h3>My IP</h3><p>Your public IPv4 and IPv6, ISP, ASN and location. Look up any IP.</p></a></div></section></div></div></div></main>
+<footer class="site-footer"><div class="wrap">
+<div class="cols">
+<div><h4>NetKit</h4><p>Free online tools for network engineers. Calculators run in your browser; lookups use public APIs.</p></div>
+<div><h4>Tools</h4><ul><li><a href="/what-is-my-ip/">My IP</a></li><li><a href="/cidr-calculator/">CIDR Calculator</a></li><li><a href="/dns-lookup/">DNS Lookup</a></li><li><a href="/bgp-asn-lookup/">BGP / ASN</a></li><li><a href="/subnet-chart/">Subnet Chart</a></li><li><a href="/port-numbers/">Port Numbers</a></li><li><a href="/ip-converter/">IP Converter</a></li><li><a href="/bandwidth-calculator/">Bandwidth Calc</a></li><li><a href="/wildcard-mask-calculator/">Wildcard Mask</a></li><li><a href="/vlsm-calculator/">VLSM Calculator</a></li><li><a href="/route-summarization/">Route Summary</a></li><li><a href="/speed-test/">Speed Test</a></li><li><a href="/latency-ping-test/">Ping Test</a></li><li><a href="/traceroute-analyzer/">Traceroute</a></li><li><a href="/open-port-checker/">Port Checker</a></li></ul></div>
+<div><h4>Company</h4><ul><li><a href="/guides/">Guides</a></li><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+</div>
+<p class="fine">&copy; 2026 NetKit. Results are provided for information only; verify before using them in production changes.</p>
+</div></footer>
+</body>
+</html>

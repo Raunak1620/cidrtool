@@ -223,12 +223,68 @@
   function fmtBig(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   function fmtNum(n) { return Number(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
+  /* ---------- ranges and VLSM ---------- */
+  /* Split an inclusive IPv4 range (numbers) into the fewest CIDR blocks. */
+  function rangeToCidrs(start, end) {
+    var out = [];
+    while (start <= end) {
+      var maxSize = start === 0 ? 4294967296 : ((start & -start) >>> 0);
+      var remaining = end - start + 1, size = maxSize;
+      while (size > remaining) size /= 2;
+      var bits = 0; while (Math.pow(2, bits) < size) bits++;
+      out.push({ net: start, prefix: 32 - bits });
+      start += size;
+    }
+    return out;
+  }
+  /* Smallest prefix that holds h usable hosts (classic: 2^n - 2). With p2p31, 1-2 hosts use a /31. */
+  function hostPrefix(h, p2p31) {
+    if (p2p31 && h <= 2) return 31;
+    var hb = 2;
+    while (Math.pow(2, hb) - 2 < h) hb++;
+    return 32 - hb;
+  }
+  /* Allocate subnets for [{name, hosts}] inside baseNet/basePrefix, largest first. */
+  function vlsmPlan(baseNet, basePrefix, reqs, p2p31) {
+    var end = baseNet + Math.pow(2, 32 - basePrefix) - 1;
+    var items = reqs.map(function (r, i) {
+      var p = hostPrefix(r.hosts, p2p31);
+      return { idx: i, name: r.name, hosts: r.hosts, prefix: p, size: Math.pow(2, 32 - p) };
+    });
+    items.sort(function (a, b) { return b.size - a.size || a.idx - b.idx; });
+    var ptr = baseNet, allocated = [], failed = [];
+    items.forEach(function (it) {
+      if (it.prefix < basePrefix || ptr + it.size - 1 > end) { failed.push(it); return; }
+      it.net = ptr; ptr += it.size; allocated.push(it);
+    });
+    return { allocated: allocated, failed: failed, nextFree: ptr, end: end, freeLeft: end - ptr + 1 };
+  }
+
+  function summarizeCidrs(items) {
+    if (!items.length) return { merged: [], supernet: null, covered: 0, extra: 0 };
+    var r = items.map(function (x) { var size = Math.pow(2, 32 - x.prefix); return [x.net, x.net + size - 1]; });
+    r.sort(function (a, b) { return a[0] - b[0] || b[1] - a[1]; });
+    var runs = [r[0].slice()];
+    for (var i = 1; i < r.length; i++) {
+      var last = runs[runs.length - 1];
+      if (r[i][0] <= last[1] + 1) { if (r[i][1] > last[1]) last[1] = r[i][1]; } else runs.push(r[i].slice());
+    }
+    var merged = [], covered = 0;
+    runs.forEach(function (x) { covered += x[1] - x[0] + 1; rangeToCidrs(x[0], x[1]).forEach(function (c) { merged.push(c); }); });
+    var lo = runs[0][0], hi = runs[runs.length - 1][1], p = 32;
+    while (p > 0 && ((lo >>> (32 - p)) !== (hi >>> (32 - p)))) p--;
+    var net = p === 0 ? 0 : ((lo >>> (32 - p)) * Math.pow(2, 32 - p));
+    var size = Math.pow(2, 32 - p);
+    return { merged: merged, supernet: { net: net, prefix: p }, covered: covered, extra: size - covered };
+  }
+
   var api = {
     ipv4ToInt: ipv4ToInt, intToIpv4: intToIpv4, prefixToMask: prefixToMask, maskToPrefix: maskToPrefix,
     ipv4Kind: ipv4Kind, ipv4Class: ipv4Class, cidr4Info: cidr4Info, ipInCidr4: ipInCidr4, splitV4: splitV4,
     parseV4Spec: parseV4Spec, parseAnyIpv4: parseAnyIpv4, ptrName4: ptrName4, toDottedBinary: toDottedBinary,
     parseIpv6: parseIpv6, formatIpv6: formatIpv6, ptrName6: ptrName6, ptrZone6: ptrZone6, ipv6Kind: ipv6Kind,
-    ipv6Info: ipv6Info, parseV6Spec: parseV6Spec, parseSpec: parseSpec, fmtBig: fmtBig, fmtNum: fmtNum
+    ipv6Info: ipv6Info, parseV6Spec: parseV6Spec, parseSpec: parseSpec, fmtBig: fmtBig, fmtNum: fmtNum,
+    rangeToCidrs: rangeToCidrs, summarizeCidrs: summarizeCidrs, hostPrefix: hostPrefix, vlsmPlan: vlsmPlan
   };
   for (var k in api) NK[k] = api[k];
 

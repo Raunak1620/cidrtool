@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How Subnetting Works: A Step-by-Step Guide with Examples | NetKit</title>
+<meta name="description" content="Learn how subnetting works with a clear step-by-step method: network and host bits, subnet masks, block size and a fully worked example for 192.168.10.77/26.">
+<link rel="canonical" href="https://ipsubnetcalculatorcidr.vercel.app/guides/how-subnetting-works/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NetKit">
+<meta property="og:title" content="How Subnetting Works: A Step-by-Step Guide with Examples | NetKit">
+<meta property="og:description" content="Learn how subnetting works with a clear step-by-step method: network and host bits, subnet masks, block size and a fully worked example for 192.168.10.77/26.">
+<meta property="og:url" content="https://ipsubnetcalculatorcidr.vercel.app/guides/how-subnetting-works/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0b6bde">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem('nk-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="stylesheet" href="/assets/css/style.css?v=858db731">
+<meta name="google-site-verification" content="oRgN_HmHnESYTVTZSc6DEeby8Fb9GwQx34rpckJhfDA"><meta name="google-adsense-account" content="ca-pub-2676656110030246"><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2676656110030246" crossorigin="anonymous"></script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "How Subnetting Works", "description": "Learn how subnetting works with a clear step-by-step method: network and host bits, subnet masks, block size and a fully worked example for 192.168.10.77/26.", "datePublished": "2026-11-21", "dateModified": "2026-11-21", "mainEntityOfPage": "https://ipsubnetcalculatorcidr.vercel.app/guides/how-subnetting-works/", "author": {"@type": "Organization", "name": "NetKit"}, "publisher": {"@type": "Organization", "name": "NetKit"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://ipsubnetcalculatorcidr.vercel.app/"}, {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://ipsubnetcalculatorcidr.vercel.app/guides/"}, {"@type": "ListItem", "position": 3, "name": "How Subnetting Works", "item": "https://ipsubnetcalculatorcidr.vercel.app/guides/how-subnetting-works/"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Why do networks get subnetted?", "acceptedAnswer": {"@type": "Answer", "text": "Subnetting keeps broadcast domains small, lets you apply security policy between segments, makes it easier to summarize routes and avoids wasting addresses by giving every segment a block that fits it."}}, {"@type": "Question", "name": "What is the fastest way to find a network address?", "acceptedAnswer": {"@type": "Answer", "text": "Find the interesting octet, work out the block size as 256 minus the mask value in that octet, and round the address octet down to the nearest multiple of the block size. Set all later octets to 0."}}, {"@type": "Question", "name": "Do I need to do the maths in binary?", "acceptedAnswer": {"@type": "Answer", "text": "Not usually. Knowing the powers of two (128, 64, 32, 16, 8, 4, 2, 1) and the eight mask values is enough for the block size method. Binary is useful for understanding why the method works and for checking unusual cases."}}, {"@type": "Question", "name": "How is subnetting different from supernetting?", "acceptedAnswer": {"@type": "Answer", "text": "Subnetting splits a network into smaller ones by lengthening the prefix. Supernetting, also called route aggregation, combines several networks into a larger one by shortening the prefix. The CIDR notation guide explains aggregation."}}]}</script>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">/24</span>NetKit</a>
+<div class="header-actions"><button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">Theme</button></div>
+</div></header>
+<nav class="tabs" aria-label="Tools"><div class="wrap"><a class="tab" href="/what-is-my-ip/">My IP</a><a class="tab" href="/cidr-calculator/">CIDR Calculator</a><a class="tab" href="/dns-lookup/">DNS Lookup</a><a class="tab" href="/bgp-asn-lookup/">BGP / ASN</a><a class="tab" href="/subnet-chart/">Subnet Chart</a><a class="tab" href="/port-numbers/">Port Numbers</a><a class="tab" href="/ip-converter/">IP Converter</a><a class="tab" href="/bandwidth-calculator/">Bandwidth Calc</a><a class="tab" href="/wildcard-mask-calculator/">Wildcard Mask</a><a class="tab" href="/vlsm-calculator/">VLSM Calculator</a><a class="tab" href="/route-summarization/">Route Summary</a><a class="tab" href="/speed-test/">Speed Test</a><a class="tab" href="/latency-ping-test/">Ping Test</a><a class="tab" href="/traceroute-analyzer/">Traceroute</a><a class="tab" href="/open-port-checker/">Port Checker</a><a class="tab" href="/guides/" aria-current="page">Guides</a></div></nav>
+<script src="/assets/js/net.js?v=a6fe9476"></script>
+<script src="/assets/js/app.js?v=411fe5fd"></script>
+<main><div class="wrap"><div class="layout"><div class="content"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> &rsaquo; <a href="/guides/">Guides</a> &rsaquo; How Subnetting Works</nav><h1>How Subnetting Works</h1><p class="lead">Subnetting splits one IP network into smaller ones by moving the boundary between network bits and host bits. This guide walks through the method step by step.</p><section class="article" style="margin-top:8px"><p>Subnetting divides one IP network into several smaller networks, called subnets. You do it by borrowing bits from the host part of the address and using them as extra network bits. Every borrowed bit doubles the number of subnets and halves the number of addresses in each one. Once you can find the block size for a prefix, the rest is simple arithmetic.</p>
+
+<h2>Network bits and host bits</h2>
+<p>An IPv4 address is 32 bits long, usually written as four decimal numbers called octets. The prefix length, the number after the slash, says how many of the leading bits identify the network. The remaining bits identify individual hosts on that network. Two devices are on the same subnet when their network bits are identical.</p>
+<p>Take 192.168.10.77/26. Written in binary the address is:</p>
+<pre class="code">11000000.10101000.00001010.01001101
+|------ 26 network bits ------|-6 host-|</pre>
+<p>The first 26 bits are the network part. The last 6 bits are the host part. Everything that follows is a way of working out where that boundary falls and what it means.</p>
+
+<h2>The subnet mask</h2>
+<p>The subnet mask writes the prefix as four octets. It has a 1 for every network bit and a 0 for every host bit. For /26 that is 26 ones followed by 6 zeros:</p>
+<pre class="code">11111111.11111111.11111111.11000000  =  255.255.255.192</pre>
+<p>A full octet of eight ones is 255. An octet with only some ones is worth 256 minus 2<sup>(8 minus the number of ones)</sup>. In the last octet of a /26 there are two ones, so the value is 256 &minus; 2<sup>6</sup> = 256 &minus; 64 = 192. The eight values that appear in a mask are 128, 192, 224, 240, 248, 252, 254 and 255. The <a href="/cidr/26/">/26 reference page</a> lists the mask, wildcard and host count for this prefix, and the <a href="/subnet-chart/">subnet chart</a> covers every prefix.</p>
+
+<h2>Step by step: finding the subnet for 192.168.10.77/26</h2>
+<p>The question is: which subnet does 192.168.10.77 belong to, and what are its first address, last address and usable range?</p>
+<ol>
+<li><strong>Count the host bits.</strong> 32 &minus; 26 = 6 host bits. A subnet therefore contains 2<sup>6</sup> = 64 addresses.</li>
+<li><strong>Find the interesting octet.</strong> This is the octet where the mask is neither 255 nor 0. Here it is the fourth octet, with a mask value of 192.</li>
+<li><strong>Calculate the block size.</strong> 256 &minus; 192 = 64. Subnets in this octet start at multiples of 64: 0, 64, 128 and 192.</li>
+<li><strong>Find the network address.</strong> 77 lies between 64 and 127, so the subnet starts at 64. The network address is 192.168.10.64.</li>
+<li><strong>Find the broadcast address.</strong> It is one less than the start of the next subnet. The next subnet starts at 128, so the broadcast address is 192.168.10.127.</li>
+<li><strong>Find the usable range.</strong> Everything between the two: 192.168.10.65 to 192.168.10.126, which is 62 hosts.</li>
+</ol>
+<p>You can confirm the network address with a bitwise AND of the address and the mask:</p>
+<pre class="code">  01001101   (77, last octet of the address)
+  11000000   (192, last octet of the mask)
+  --------
+  01000000   (64, last octet of the network address)</pre>
+<p>The first three octets of the mask are 255, so they pass through unchanged. That is why the network address is 192.168.10.64.</p>
+
+<h2>Splitting a network into equal subnets</h2>
+<p>Start with 192.168.10.0/24, which has 8 host bits. If you borrow 2 of them, the prefix becomes /26 and you get 2<sup>2</sup> = 4 subnets of 64 addresses each:</p>
+<div class="table-wrap"><table class="data">
+<thead><tr><th>Subnet</th><th>Usable range</th><th>Broadcast</th></tr></thead>
+<tbody>
+<tr><td>192.168.10.0/26</td><td>192.168.10.1 to 192.168.10.62</td><td>192.168.10.63</td></tr>
+<tr><td>192.168.10.64/26</td><td>192.168.10.65 to 192.168.10.126</td><td>192.168.10.127</td></tr>
+<tr><td>192.168.10.128/26</td><td>192.168.10.129 to 192.168.10.190</td><td>192.168.10.191</td></tr>
+<tr><td>192.168.10.192/26</td><td>192.168.10.193 to 192.168.10.254</td><td>192.168.10.255</td></tr>
+</tbody></table></div>
+<p>The general rule is that borrowing <em>n</em> bits gives 2<sup><em>n</em></sup> subnets. This table shows the common cases starting from a /24:</p>
+<div class="table-wrap"><table class="data">
+<thead><tr><th>Bits borrowed</th><th>New prefix</th><th>Subnets</th><th>Addresses each</th><th>Usable hosts each</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>/25</td><td>2</td><td>128</td><td>126</td></tr>
+<tr><td>2</td><td>/26</td><td>4</td><td>64</td><td>62</td></tr>
+<tr><td>3</td><td>/27</td><td>8</td><td>32</td><td>30</td></tr>
+<tr><td>4</td><td>/28</td><td>16</td><td>16</td><td>14</td></tr>
+<tr><td>5</td><td>/29</td><td>32</td><td>8</td><td>6</td></tr>
+<tr><td>6</td><td>/30</td><td>64</td><td>4</td><td>2</td></tr>
+</tbody></table></div>
+<p>All subnets above have the same size. When you need different sizes for different segments, you use variable length subnet masks. That method is covered in the <a href="/guides/vlsm-tutorial/">VLSM tutorial</a>.</p>
+
+<h2>When the boundary is not in the last octet</h2>
+<p>The same method works for any prefix. Only the interesting octet changes. Consider 172.20.45.9/20:</p>
+<ul>
+<li>The mask is 255.255.240.0, so the interesting octet is the third one, with a mask value of 240.</li>
+<li>The block size is 256 &minus; 240 = 16.</li>
+<li>The third octet of the address is 45. The largest multiple of 16 that is not above 45 is 32, so the network address is 172.20.32.0.</li>
+<li>The next subnet starts at 172.20.48.0, so the broadcast address is 172.20.47.255.</li>
+<li>There are 12 host bits, so the subnet has 2<sup>12</sup> &minus; 2 = 4,094 usable hosts.</li>
+</ul>
+<p>Octets after the interesting one are 0 in the network address and 255 in the broadcast address.</p>
+
+<h2>Common mistakes</h2>
+<ul>
+<li><strong>Forgetting the two reserved addresses.</strong> In a normal subnet the first address is the network address and the last is the broadcast address. Neither can be assigned to a host. See <a href="/guides/how-many-hosts-in-a-subnet/">how many hosts are in a subnet</a> for the /31 and /32 exceptions.</li>
+<li><strong>Mixing up the mask and the wildcard.</strong> The wildcard mask is the inverse of the subnet mask. For /26 the mask is 255.255.255.192 and the wildcard is 0.0.0.63.</li>
+<li><strong>Miscounting host bits.</strong> Always subtract the prefix from 32 before you do anything else.</li>
+<li><strong>Using the wrong octet.</strong> The interesting octet is the one where the mask changes from 255 to 0. For /26 it is the fourth, for /20 it is the third.</li>
+</ul>
+<p>To check your answers, use the <a href="/cidr-calculator/">CIDR calculator</a>. To practise the method with random questions and worked answers, try the <a href="/vlsm-calculator/">VLSM calculator</a>.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>Why do networks get subnetted?</summary><p>Subnetting keeps broadcast domains small, lets you apply security policy between segments, makes it easier to summarize routes and avoids wasting addresses by giving every segment a block that fits it.</p></details>
+<details><summary>What is the fastest way to find a network address?</summary><p>Find the interesting octet, work out the block size as 256 minus the mask value in that octet, and round the address octet down to the nearest multiple of the block size. Set all later octets to 0.</p></details>
+<details><summary>Do I need to do the maths in binary?</summary><p>Not usually. Knowing the powers of two (128, 64, 32, 16, 8, 4, 2, 1) and the eight mask values is enough for the block size method. Binary is useful for understanding why the method works and for checking unusual cases.</p></details>
+<details><summary>How is subnetting different from supernetting?</summary><p>Subnetting splits a network into smaller ones by lengthening the prefix. Supernetting, also called route aggregation, combines several networks into a larger one by shortening the prefix. The <a href="/guides/cidr-notation-explained/">CIDR notation guide</a> explains aggregation.</p></details><p class="muted" style="margin-top:22px">Last updated November 21, 2026.</p></section><section class="related"><h2>Related tools</h2><div class="cards"><a class="card" href="/cidr-calculator/"><span class="glyph">/24</span><h3>CIDR Calculator</h3><p>Network, broadcast, usable range, wildcard and subnet splitting for IPv4 and IPv6.</p></a><a class="card" href="/subnet-chart/"><span class="glyph">/n</span><h3>Subnet Chart</h3><p>Searchable CIDR, netmask and wildcard chart for /0 to /32, plus IPv6 sizes.</p></a><a class="card" href="/vlsm-calculator/"><span class="glyph">VL</span><h3>VLSM Calculator</h3><p>Plan variable length subnets from host counts with ranges and spare capacity.</p></a></div></section><section class="related"><h2>Keep reading</h2><div class="cards"><a class="card" href="/guides/how-many-hosts-in-a-subnet/"><span class="glyph">Guide</span><h3>How Many Hosts Are in a Subnet?</h3><p>Calculate usable hosts in any IPv4 subnet with 2^n minus 2. Includes a /8 to /32 table, the /31 and /32 exceptions and how to choose a prefix for a host count.</p></a><a class="card" href="/guides/vlsm-tutorial/"><span class="glyph">Guide</span><h3>VLSM Tutorial</h3><p>A step-by-step VLSM tutorial. Learn to allocate variable length subnets from one address block, with a worked example that fits four segments into a /24.</p></a><a class="card" href="/guides/cidr-notation-explained/"><span class="glyph">Guide</span><h3>CIDR Notation Explained</h3><p>CIDR notation explained clearly: what the slash number means, why it replaced classful addressing, how route aggregation works and how routers pick the longest prefix.</p></a></div></section></div></div></div></main>
+<footer class="site-footer"><div class="wrap">
+<div class="cols">
+<div><h4>NetKit</h4><p>Free online tools for network engineers. Calculators run in your browser; lookups use public APIs.</p></div>
+<div><h4>Tools</h4><ul><li><a href="/what-is-my-ip/">My IP</a></li><li><a href="/cidr-calculator/">CIDR Calculator</a></li><li><a href="/dns-lookup/">DNS Lookup</a></li><li><a href="/bgp-asn-lookup/">BGP / ASN</a></li><li><a href="/subnet-chart/">Subnet Chart</a></li><li><a href="/port-numbers/">Port Numbers</a></li><li><a href="/ip-converter/">IP Converter</a></li><li><a href="/bandwidth-calculator/">Bandwidth Calc</a></li><li><a href="/wildcard-mask-calculator/">Wildcard Mask</a></li><li><a href="/vlsm-calculator/">VLSM Calculator</a></li><li><a href="/route-summarization/">Route Summary</a></li><li><a href="/speed-test/">Speed Test</a></li><li><a href="/latency-ping-test/">Ping Test</a></li><li><a href="/traceroute-analyzer/">Traceroute</a></li><li><a href="/open-port-checker/">Port Checker</a></li></ul></div>
+<div><h4>Company</h4><ul><li><a href="/guides/">Guides</a></li><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+</div>
+<p class="fine">&copy; 2026 NetKit. Results are provided for information only; verify before using them in production changes.</p>
+</div></footer>
+</body>
+</html>

@@ -1,0 +1,136 @@
+---
+slug: wildcard-mask-calculator
+order: 9
+title: Wildcard Mask Calculator: Subnet Mask, CIDR and IP Range Converter
+description: Free wildcard mask calculator for Cisco ACLs and OSPF. Convert CIDR or a subnet mask to a wildcard mask, copy config snippets, and turn an IP range into CIDR blocks.
+h1: Wildcard Mask Calculator
+nav: Wildcard Mask
+lead: Convert between CIDR, subnet mask and wildcard mask, copy ready-made ACL and routing config, or turn an IP range into the smallest set of CIDR blocks.
+glyph: wc
+card: Subnet mask, CIDR and wildcard conversion, ACL snippets and IP range to CIDR.
+related: cidr-calculator, subnet-chart, ip-converter
+keywords: wildcard mask acl ospf cisco inverse mask ip range to cidr eigrp
+---
+<div class="tool">
+  <h2 class="sub" style="margin-top:0">Convert a mask or network</h2>
+  <form id="wc-form" class="inline-form" autocomplete="off" novalidate>
+    <label class="sr-only" for="wc-in">CIDR, subnet mask or wildcard mask</label>
+    <input id="wc-in" type="text" placeholder="192.168.1.0/24 · 255.255.255.0 · 0.0.0.255 · 10.1.2.0 0.0.0.255" spellcheck="false" autocapitalize="off">
+    <button class="btn" type="submit">Convert</button>
+  </form>
+  <div class="chips"><span class="muted">Try:</span>
+    <button type="button" class="chip" data-ex="192.168.1.0/24">192.168.1.0/24</button>
+    <button type="button" class="chip" data-ex="255.255.240.0">255.255.240.0</button>
+    <button type="button" class="chip" data-ex="0.0.0.63">0.0.0.63</button>
+    <button type="button" class="chip" data-ex="10.1.2.0 0.0.0.255">10.1.2.0 0.0.0.255</button>
+    <button type="button" class="chip" data-ex="172.16.8.7/32">172.16.8.7/32</button>
+  </div>
+  <div class="out" id="wc-out" aria-live="polite"></div>
+</div>
+
+<div class="tool" style="margin-top:16px">
+  <h2 class="sub" style="margin-top:0">Convert an IP range to CIDR blocks</h2>
+  <form id="rg-form" class="inline-form" autocomplete="off" novalidate>
+    <label class="sr-only" for="rg-in">IP range</label>
+    <input id="rg-in" type="text" placeholder="10.0.0.5 - 10.0.0.200" spellcheck="false" autocapitalize="off">
+    <button class="btn" type="submit">Convert range</button>
+  </form>
+  <div class="chips"><span class="muted">Try:</span>
+    <button type="button" class="chip" data-rg="192.168.1.10 - 192.168.1.20">192.168.1.10 - 192.168.1.20</button>
+    <button type="button" class="chip" data-rg="10.0.0.0 - 10.0.5.255">10.0.0.0 - 10.0.5.255</button>
+  </div>
+  <div class="out" id="rg-out" aria-live="polite"></div>
+</div>
+
+<script>
+(function () {
+  var f = NK.intToIpv4, inp = NK.$('#wc-in'), out = NK.$('#wc-out'), rin = NK.$('#rg-in'), rout = NK.$('#rg-out');
+  function r(k, v) { return '<div><dt>' + NK.esc(k) + '</dt><dd class="mono copyable">' + NK.esc(v) + '</dd></div>'; }
+  function code(title, t) { return '<h3 style="margin:16px 0 4px;font-size:1rem">' + NK.esc(title) + '</h3><pre class="code copyable" data-copy-text="' + NK.esc(t) + '">' + NK.esc(t) + '</pre>'; }
+  function bad(m) { return '<div class="alert err">' + m + '</div>'; }
+
+  function maskOnly(n, p, kind) {
+    var m = NK.prefixToMask(p), w = (~m) >>> 0, total = Math.pow(2, 32 - p);
+    out.innerHTML = '<p class="muted">Recognised as a ' + kind + '.</p><dl class="kv">' + r('Prefix length', '/' + p) + r('Subnet mask', f(m)) + r('Wildcard mask', f(w)) +
+      r('Addresses per subnet', NK.fmtNum(total)) + r('Usable hosts', NK.fmtNum(p === 32 ? 1 : p === 31 ? 2 : total - 2)) + '</dl>' +
+      '<div class="alert note">Add a network address to get config snippets, for example <code>10.1.2.0/' + p + '</code>.</div>';
+  }
+  function ambiguous(n) {
+    var h = n === 0
+      ? r('As a subnet mask', '0.0.0.0 = /0, matches every address') + r('As a wildcard mask', '0.0.0.0 = /32, matches exactly one host')
+      : r('As a subnet mask', '255.255.255.255 = /32, a single host') + r('As a wildcard mask', '255.255.255.255 = /0, matches every address (any)');
+    out.innerHTML = '<p class="muted">This value is valid both ways, so it depends on where you use it.</p><dl class="kv">' + h + '</dl>';
+  }
+  function full(spec) {
+    var i = NK.cidr4Info(spec.ip, spec.prefix), n = f(i.network), p = i.prefix, w = f(i.wildcard);
+    var match = p === 32 ? 'host ' + n : p === 0 ? 'any' : n + ' ' + w;
+    var note = spec.bare ? '<div class="alert note">No prefix given, so this is treated as a single host (/32).</div>' :
+      (spec.ip !== i.network ? '<div class="alert note">Host bits are set in <strong>' + f(spec.ip) + '</strong>. Using the network ' + n + '/' + p + '.</div>' : '');
+    NK.setParams({ q: spec.bare ? f(spec.ip) : n + '/' + p });
+    out.innerHTML = note + '<dl class="kv">' + r('Network', n + '/' + p) + r('Subnet mask', f(i.mask)) + r('Wildcard mask', w) +
+      r('Addresses', NK.fmtNum(i.total)) + r('Usable hosts', NK.fmtNum(i.usable)) + '</dl>' +
+      code('Cisco standard ACL', 'access-list 10 permit ' + match) +
+      code('Cisco extended ACL', 'ip access-list extended ALLOW-NET\n permit ip ' + match + ' any\n permit tcp ' + match + ' any eq 443') +
+      code('OSPF network statement', 'router ospf 1\n network ' + n + ' ' + w + ' area 0') +
+      code('EIGRP network statement', 'router eigrp 100\n network ' + n + ' ' + w) +
+      code('Juniper prefix list', 'set policy-options prefix-list NET ' + n + '/' + p) +
+      code('Linux iptables', 'iptables -A INPUT -s ' + n + '/' + p + ' -j ACCEPT');
+  }
+  function run(v) {
+    v = (v || '').trim();
+    if (!v) { out.innerHTML = ''; return; }
+    var n = NK.ipv4ToInt(v);
+    if (n !== null) {
+      var m = NK.maskToPrefix(n), w = NK.maskToPrefix((~n) >>> 0);
+      if (m >= 1 && m <= 31) { NK.setParams({ q: v }); return maskOnly(n, m, 'subnet mask'); }
+      if (w >= 1 && w <= 31) { NK.setParams({ q: v }); return maskOnly((~n) >>> 0, w, 'wildcard mask'); }
+      if (n === 0 || n === 4294967295) { NK.setParams({ q: v }); return ambiguous(n); }
+    }
+    var spec = NK.parseV4Spec(v);
+    if (!spec) { out.innerHTML = bad('Could not parse that. Try <code>192.168.1.0/24</code>, <code>255.255.255.0</code>, <code>0.0.0.255</code> or <code>10.1.2.0 0.0.0.255</code>. Masks must be contiguous.'); return; }
+    full(spec);
+  }
+
+  function runRange(v) {
+    v = (v || '').trim();
+    if (!v) { rout.innerHTML = ''; return; }
+    var m = /^(\d{1,3}(?:\.\d{1,3}){3})\s*(?:-|–|to)\s*(\d{1,3}(?:\.\d{1,3}){3})$/i.exec(v);
+    var a = m ? NK.ipv4ToInt(m[1]) : null, b = m ? NK.ipv4ToInt(m[2]) : null;
+    if (a === null || b === null) { rout.innerHTML = bad('Enter a range such as <code>10.0.0.5 - 10.0.0.200</code> using two valid IPv4 addresses.'); return; }
+    if (a > b) { rout.innerHTML = bad('The start address must not be higher than the end address.'); return; }
+    NK.setParams({ r: v });
+    var list = NK.rangeToCidrs(a, b), rows = '';
+    list.forEach(function (x) {
+      var mk = NK.prefixToMask(x.prefix);
+      rows += '<tr><td class="mono copyable">' + f(x.net) + '/' + x.prefix + '</td><td class="mono">' + f(mk) + '</td><td class="mono">' + f((~mk) >>> 0) + '</td><td>' + NK.fmtNum(Math.pow(2, 32 - x.prefix)) + '</td></tr>';
+    });
+    rout.innerHTML = '<p class="muted">' + list.length + ' CIDR block' + (list.length === 1 ? '' : 's') + ' cover ' + NK.fmtNum(b - a + 1) + ' addresses from ' + f(a) + ' to ' + f(b) + '.</p>' +
+      '<div class="table-wrap"><table class="data"><thead><tr><th>CIDR</th><th>Subnet mask</th><th>Wildcard mask</th><th>Addresses</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+
+  NK.$('#wc-form').addEventListener('submit', function (e) { e.preventDefault(); run(inp.value); });
+  NK.$('#rg-form').addEventListener('submit', function (e) { e.preventDefault(); runRange(rin.value); });
+  NK.$$('.chip[data-ex]').forEach(function (b) { b.addEventListener('click', function () { inp.value = b.getAttribute('data-ex'); run(inp.value); }); });
+  NK.$$('.chip[data-rg]').forEach(function (b) { b.addEventListener('click', function () { rin.value = b.getAttribute('data-rg'); runRange(rin.value); }); });
+  var q = NK.getParam('q'); if (q) { inp.value = q; run(q); }
+  var rr = NK.getParam('r'); if (rr) { rin.value = rr; runRange(rr); }
+})();
+</script>
+<!--ARTICLE-->
+<h2>What is a wildcard mask?</h2>
+<p>A wildcard mask is the bitwise inverse of a subnet mask. Where a subnet mask uses 1 bits for the network part, a wildcard mask uses 0 bits to mean "this bit must match" and 1 bits to mean "this bit can be anything". The subnet mask <code>255.255.255.0</code> becomes the wildcard mask <code>0.0.0.255</code>. Cisco IOS access lists and the <code>network</code> statements in OSPF and EIGRP use wildcard masks, which is why engineers keep converting between the two.</p>
+
+<h2>How to calculate a wildcard mask</h2>
+<p>Subtract each octet of the subnet mask from 255. For <code>255.255.240.0</code>: 255 &minus; 255 = 0, 255 &minus; 255 = 0, 255 &minus; 240 = 15 and 255 &minus; 0 = 255, so the wildcard mask is <code>0.0.15.255</code>. For a prefix length, the wildcard has 32 &minus; prefix trailing 1 bits, so a /20 leaves 12 host bits and the wildcard is 0.0.15.255.</p>
+
+<h2>The host and any keywords</h2>
+<p>In Cisco ACLs, <code>host 10.1.1.1</code> is shorthand for <code>10.1.1.1 0.0.0.0</code> (a /32), and <code>any</code> is shorthand for <code>0.0.0.0 255.255.255.255</code> (a /0). The calculator uses these forms in the snippets it generates.</p>
+
+<h2>Converting an IP range to CIDR</h2>
+<p>A range like <code>192.168.1.10 - 192.168.1.20</code> rarely lines up with one subnet. The second tool splits it into the smallest list of aligned CIDR blocks that covers exactly that range, and shows the mask and wildcard for each. For that example it returns /31, /30, /30 and /32.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>What is the wildcard mask for /24?</summary><p>0.0.0.255. A /24 has 8 host bits, so the last octet of the wildcard is all ones.</p></details>
+<details><summary>What is the wildcard mask for a single host?</summary><p>0.0.0.0, which means every bit must match. Cisco lets you write <code>host x.x.x.x</code> instead.</p></details>
+<details><summary>Can a wildcard mask be non-contiguous?</summary><p>Yes. Unlike subnet masks, wildcard masks do not have to be contiguous, which allows tricks such as matching only odd or even subnets. This calculator accepts contiguous masks only, because those correspond to real CIDR blocks.</p></details>
+<details><summary>Do all vendors use wildcard masks?</summary><p>No. Cisco IOS uses them in ACLs and routing network statements. Juniper, Linux and most firewalls use prefix lengths or subnet masks instead.</p></details>

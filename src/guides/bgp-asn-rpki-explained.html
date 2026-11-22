@@ -1,0 +1,44 @@
+---
+slug: bgp-asn-rpki-explained
+title: BGP, ASNs and RPKI Explained for Network Engineers
+description: What an autonomous system number is, how BGP uses it to exchange routes, how to read an AS path, and how RPKI route origin validation protects against route hijacks.
+h1: BGP, ASNs and RPKI Explained
+lead: The basics of how the internet routes between networks: what an ASN is, how BGP uses it, and how RPKI helps stop bad route announcements.
+related: bgp-asn-lookup, what-is-my-ip, dns-lookup
+guides: public-vs-private-ip-and-nat, private-ip-address-ranges, cidr-notation-explained
+updated: 2026-11-22
+---
+<p>The internet is a network of networks. Each network that sets its own routing policy is an <strong>autonomous system (AS)</strong>, and the protocol they use to tell each other which addresses they can reach is the <strong>Border Gateway Protocol (BGP)</strong>.</p>
+
+<h2>What is an ASN?</h2>
+<p>An autonomous system number is the identifier of an AS. ASNs were originally 16 bits (0 to 65535) and are now 32 bits, written either as a plain number such as <code>AS64500</code> or in older "asdot" form. They are allocated by the regional internet registries (ARIN, RIPE NCC, APNIC, LACNIC and AFRINIC).</p>
+<ul>
+<li><strong>64512 &ndash; 65534</strong> and <strong>4200000000 &ndash; 4294967294</strong> are private ASNs, used inside a network or between a customer and an ISP, and not visible on the public internet.</li>
+<li><strong>64496 &ndash; 64511</strong> are reserved for documentation.</li>
+</ul>
+
+<h2>How BGP works</h2>
+<p>Two routers form a BGP session over TCP port 179. They exchange prefixes along with attributes such as the AS path, the list of ASNs a route passed through. Each AS prepends its own number when it passes a route on. External BGP (eBGP) runs between different ASNs and internal BGP (iBGP) runs inside one.</p>
+
+<h2>Reading an AS path</h2>
+<p>If you see the path <code>64500 64501 64502</code> for a prefix, the route originated in AS64502, passed through AS64501 and then AS64500 to reach you. By default, BGP prefers the shortest AS path, although local preference and other attributes are checked first. Operators can lengthen a path on purpose, which is called prepending, to make a route less attractive.</p>
+
+<h2>Route hijacks and leaks</h2>
+<p>BGP was designed on trust. If an AS announces a prefix it does not own, neighbours may accept it, which sends traffic to the wrong place. This is a hijack. A route leak is when an AS passes routes to a neighbour that it should not have, for example announcing one provider's routes to another.</p>
+
+<h2>RPKI and route origin validation</h2>
+<p>The Resource Public Key Infrastructure lets the holder of a prefix publish a signed statement called a <strong>Route Origin Authorization (ROA)</strong>. It says which ASN may originate the prefix and the longest prefix length (maxLength) it may announce. A router doing route origin validation compares each received route with the ROAs and marks it:</p>
+<ul>
+<li><strong>Valid</strong>: a ROA matches the origin ASN and the length is within maxLength.</li>
+<li><strong>Invalid</strong>: a ROA covers the prefix but the origin ASN or length does not match.</li>
+<li><strong>Not found</strong>: no ROA covers the prefix.</li>
+</ul>
+<p>Many networks now drop invalid routes. RPKI checks the origin only, not the full path, so it does not stop every kind of leak or hijack.</p>
+
+<h2>Checking your own prefixes</h2>
+<p>Use the <a href="/bgp-asn-lookup/">BGP and ASN lookup</a> to see which prefixes an ASN announces, who its neighbours are, and the RPKI status of a prefix.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>Do I need an ASN?</summary><p>Only if you connect to more than one upstream provider and want your own routing policy, or you hold your own address space. Single-homed customers normally use their provider's ASN.</p></details>
+<details><summary>What is maxLength in a ROA?</summary><p>It is the longest prefix length the origin AS is allowed to announce. A ROA for 192.0.2.0/24 with maxLength 24 does not authorise a more specific /25.</p></details>
+<details><summary>Does RPKI encrypt BGP?</summary><p>No. It validates who may originate a prefix. It does not encrypt or authenticate the BGP session.</p></details>

@@ -1,0 +1,72 @@
+---
+slug: cidr-notation-explained
+title: CIDR Notation Explained: Prefix Lengths, Aggregation and Routing
+description: CIDR notation explained clearly: what the slash number means, why it replaced classful addressing, how route aggregation works and how routers pick the longest prefix.
+h1: CIDR Notation Explained
+lead: CIDR writes an IP network as an address plus a prefix length. It replaced fixed address classes and made route aggregation possible.
+related: cidr-calculator, subnet-chart, wildcard-mask-calculator
+guides: how-subnetting-works, wildcard-masks-explained, vlsm-tutorial
+updated: 2026-11-21
+---
+<p>CIDR, short for Classless Inter-Domain Routing, describes an IP network by an address and a prefix length, for example 203.0.113.0/24. The number after the slash says how many leading bits are the network part. CIDR replaced the old fixed address classes, so a network can be any power-of-two size and routes can be combined into shorter prefixes.</p>
+
+<h2>How to read CIDR notation</h2>
+<p>In 203.0.113.0/24 the first 24 of the 32 bits identify the network and the last 8 identify hosts. The prefix length is just another way of writing a subnet mask. A /24 is the same as the mask 255.255.255.0. A /26 is the same as 255.255.255.192. A larger prefix number means a longer network part and a smaller network. The <a href="/cidr-calculator/">CIDR calculator</a> converts between prefix lengths, masks and address ranges.</p>
+<p>The prefix also fixes the size of the block. A network with <em>h</em> host bits contains 2<sup><em>h</em></sup> addresses, so a /24 has 256 addresses, a /23 has 512 and a /22 has 1,024. Every step toward a shorter prefix doubles the block.</p>
+
+<h2>Why classful addressing was replaced</h2>
+<p>Early IPv4 used fixed classes decided by the first bits of the address. Class A networks had a /8 prefix, class B had /16 and class C had /24. The first octet decided the class: 0 to 127 was class A, 128 to 191 was class B and 192 to 223 was class C.</p>
+<p>The fixed sizes caused two problems:</p>
+<ul>
+<li>An organization that needed 1,000 addresses was too big for a class C (254 usable hosts) and received a class B (65,534 usable hosts), most of which went unused.</li>
+<li>Giving out many small class C networks to organizations that needed a few thousand addresses filled the global routing table with separate entries.</li>
+</ul>
+<p>CIDR, first specified in RFC 1519 in 1993 and now described in RFC 4632, removed the classes. An allocation can be sized to fit, for example a /22 for 1,000 hosts, and neighbouring allocations can be advertised as one route. Class names still appear in exam material and older documentation, but routing today is classless.</p>
+
+<h2>Route aggregation</h2>
+<p>Aggregation, also called supernetting or route summarization, replaces several routes with a single shorter prefix. Take four consecutive /24 networks:</p>
+<pre class="code">192.168.0.0/24
+192.168.1.0/24
+192.168.2.0/24
+192.168.3.0/24</pre>
+<p>Together they cover 192.168.0.0 to 192.168.3.255, which is exactly one /22. The summary is 192.168.0.0/22 with the mask 255.255.252.0. A router upstream needs one route instead of four.</p>
+<p>A group of networks can be summarized into a single prefix only when all of these are true:</p>
+<ol>
+<li>The number of networks is a power of two.</li>
+<li>They are contiguous, with no gaps.</li>
+<li>The first network starts on a boundary that fits the block size. A /22 must start on a multiple of 4 in the third octet.</li>
+</ol>
+<p>This is why 192.168.1.0/24 to 192.168.4.0/24 cannot become a single /22. The range starts at 1, which is not a multiple of 4. The shortest accurate description is three routes: 192.168.1.0/24, 192.168.2.0/23 and 192.168.4.0/24. Planning address blocks so that related subnets sit together and start on the right boundary is what makes summarization possible later. The <a href="/guides/vlsm-tutorial/">VLSM tutorial</a> shows how to allocate subnets in a way that keeps them aligned.</p>
+
+<h2>Longest prefix match</h2>
+<p>When a routing table holds overlapping prefixes, a router forwards a packet using the matching route with the longest prefix. It is the most specific route. Suppose a router has these three routes:</p>
+<div class="table-wrap"><table class="data">
+<thead><tr><th>Route</th><th>Covers</th></tr></thead>
+<tbody>
+<tr><td>10.0.0.0/8</td><td>10.0.0.0 to 10.255.255.255</td></tr>
+<tr><td>10.1.0.0/16</td><td>10.1.0.0 to 10.1.255.255</td></tr>
+<tr><td>10.1.2.0/24</td><td>10.1.2.0 to 10.1.2.255</td></tr>
+</tbody></table></div>
+<p>Where each destination goes:</p>
+<ul>
+<li>10.1.2.50 matches all three routes. The /24 is the longest, so it wins.</li>
+<li>10.1.9.9 matches the /8 and the /16. The /16 wins.</li>
+<li>10.200.0.1 matches only the /8, so it uses the /8.</li>
+</ul>
+<p>This rule lets you advertise a broad aggregate and still carve out exceptions with more specific routes. It is also how a hijacked or leaked prefix can attract traffic: a more specific announcement beats a broader one. The <a href="/bgp-asn-lookup/">BGP and ASN lookup</a> shows the prefixes an AS announces.</p>
+
+<h2>Special prefix lengths</h2>
+<ul>
+<li><strong>/0</strong> matches every address. 0.0.0.0/0 is the default route, used when nothing more specific matches. See the <a href="/cidr/0/">/0 reference</a>.</li>
+<li><strong>/32</strong> matches exactly one address. It is used for loopbacks, router IDs and host routes. See the <a href="/cidr/32/">/32 reference</a>.</li>
+<li><strong>/31</strong> is a point-to-point link with two usable addresses (RFC 3021).</li>
+</ul>
+
+<h2>CIDR in access lists</h2>
+<p>CIDR is the notation for networks in firewalls, cloud security groups and prefix lists. Cisco IOS access lists and OSPF network statements use a wildcard mask instead of a prefix length. For 192.168.0.0/22 the wildcard is 0.0.3.255. The <a href="/guides/wildcard-masks-explained/">wildcard mask guide</a> covers how to convert between the two.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>What does the number after the slash mean?</summary><p>It is the prefix length: the number of leading bits in the address that identify the network. The rest of the 32 bits identify hosts.</p></details>
+<details><summary>What is the difference between CIDR notation and a subnet mask?</summary><p>They carry the same information. A /26 prefix and the mask 255.255.255.192 both say that the first 26 bits are the network part. CIDR notation is shorter to write.</p></details>
+<details><summary>Is classful addressing still used?</summary><p>Not for routing. Routers and hosts use the prefix length they are configured with. The class names remain useful vocabulary and appear in certification exams.</p></details>
+<details><summary>Can a prefix be any length from 0 to 32?</summary><p>Yes. Any length from /0 to /32 is valid in IPv4, although some are used only in special cases, such as /0 for the default route and /32 for a single host.</p></details>

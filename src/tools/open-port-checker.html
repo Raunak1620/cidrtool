@@ -1,0 +1,103 @@
+---
+slug: open-port-checker
+order: 15
+title: Open Port Checker: Test Which Ports Are Open on Your IP Address
+description: Free open port checker. Test whether common ports such as 22, 80, 443 and 3389 are reachable from the internet on your own public IP address, to verify port forwarding and firewall rules.
+h1: Open Port Checker
+nav: Port Checker
+lead: Check whether ports on your own public IP address are reachable from the internet. Useful for testing port forwarding, firewall rules and exposed services.
+glyph: :80
+card: Check which ports are open on your own public IP from the internet.
+related: port-numbers, what-is-my-ip, speed-test
+keywords: open port checker port forwarding test firewall check tcp port scan my ip
+---
+<div class="tool">
+  <div class="alert note" style="margin-top:0">For security, this tool checks <strong>only the public IP address you are connecting from</strong>. It cannot test other hosts, so it cannot be used to scan anyone else. Only test networks you own or manage.</div>
+  <div class="row">
+    <div class="field" style="flex:2 1 260px"><label for="pc-ports">Ports (up to 10, separated by commas)</label>
+      <input id="pc-ports" type="text" value="22,80,443" spellcheck="false" autocapitalize="off" autocomplete="off"></div>
+    <button class="btn" id="pc-go" type="button" style="align-self:flex-end">Check ports</button>
+  </div>
+  <div class="chips"><span class="muted">Presets:</span>
+    <button type="button" class="chip" data-p="80,443">Web</button>
+    <button type="button" class="chip" data-p="22,3389,5900">Remote access</button>
+    <button type="button" class="chip" data-p="25,465,587,993">Mail</button>
+    <button type="button" class="chip" data-p="3306,5432,6379,27017">Databases</button>
+    <button type="button" class="chip" data-p="21,23,445,139">Risky if exposed</button>
+  </div>
+  <div class="out" id="pc-out" aria-live="polite"></div>
+</div>
+
+<script>
+(function () {
+  var inp = NK.$('#pc-ports'), out = NK.$('#pc-out'), go = NK.$('#pc-go');
+  var NAMES = { 20: 'FTP data', 21: 'FTP', 22: 'SSH', 23: 'Telnet', 25: 'SMTP', 53: 'DNS', 80: 'HTTP', 110: 'POP3', 139: 'NetBIOS', 143: 'IMAP', 389: 'LDAP', 443: 'HTTPS', 445: 'SMB', 465: 'SMTPS', 587: 'SMTP submission', 993: 'IMAPS', 995: 'POP3S', 1433: 'SQL Server', 1723: 'PPTP', 3306: 'MySQL', 3389: 'RDP', 5432: 'PostgreSQL', 5900: 'VNC', 6379: 'Redis', 8080: 'HTTP alt', 8443: 'HTTPS alt', 27017: 'MongoDB' };
+  var RISK = { 21: 'FTP sends passwords in clear text.', 23: 'Telnet sends everything unencrypted. Use SSH.', 139: 'NetBIOS should not be exposed to the internet.', 445: 'SMB exposed to the internet is a major attack target.', 3389: 'RDP is heavily scanned and attacked. Put it behind a VPN.', 5900: 'VNC should be behind a VPN or tunnel.', 3306: 'Databases should not be open to the internet.', 5432: 'Databases should not be open to the internet.', 6379: 'Redis has no safe default authentication when exposed.', 27017: 'Databases should not be open to the internet.', 1433: 'Databases should not be open to the internet.' };
+  function parse() {
+    var raw = inp.value.split(/[\s,;]+/).filter(Boolean), ports = [], bad = [];
+    raw.forEach(function (x) { if (/^\d{1,5}$/.test(x) && +x >= 1 && +x <= 65535) { if (ports.indexOf(+x) < 0) ports.push(+x); } else bad.push(x); });
+    return { ports: ports, bad: bad };
+  }
+  async function run() {
+    var p = parse();
+    if (p.bad.length || !p.ports.length) { out.innerHTML = '<div class="alert err">Enter port numbers between 1 and 65535, separated by commas.</div>'; return; }
+    if (p.ports.length > 10) { out.innerHTML = '<div class="alert err">Please check at most 10 ports at a time.</div>'; return; }
+    go.disabled = true; out.innerHTML = '<p class="muted">Checking from the internet… this takes up to 5 seconds.</p>';
+    try {
+      var ctl = new AbortController(), t = setTimeout(function () { ctl.abort(); }, 15000);
+      var r = await fetch('/api/port-check?ports=' + p.ports.join(','), { cache: 'no-store', signal: ctl.signal }); clearTimeout(t);
+      var j; try { j = await r.json(); } catch (e) { throw new Error('The port check service is not available right now.'); }
+      if (!r.ok) throw new Error(j && j.error ? j.error : 'The port check service returned an error.');
+      NK.setParams({ ports: p.ports.join(',') });
+      var rows = j.results.map(function (x) {
+        var pill = '<span class="pill ' + x.status + '">' + (x.status === 'open' ? 'Open' : x.status === 'closed' ? 'Closed' : 'No response') + '</span>';
+        var msg = x.status === 'open' ? (RISK[x.port] || 'A service is accepting connections.') : x.status === 'closed' ? 'Reached your IP, but nothing is listening, or it is refused.' : 'No reply: filtered by a firewall, not forwarded, or the host is unreachable.';
+        return '<tr><td class="mono">' + x.port + '</td><td>' + NK.esc(NAMES[x.port] || '') + '</td><td>' + pill + '</td><td>' + NK.esc(msg) + '</td></tr>';
+      }).join('');
+      out.innerHTML = '<p>Tested from the internet against <span class="mono">' + NK.esc(j.ip) + '</span>.</p><div class="table-wrap"><table class="data"><thead><tr><th>Port</th><th>Service</th><th>Status</th><th>Meaning</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+    } catch (e) {
+      out.innerHTML = '<div class="alert err">' + NK.esc(e && e.name === 'AbortError' ? 'The check timed out. Try again.' : (e && e.message) || 'Check failed') + '</div>';
+    }
+    go.disabled = false;
+  }
+  go.addEventListener('click', run);
+  inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') run(); });
+  NK.$$('.chip[data-p]').forEach(function (b) { b.addEventListener('click', function () { inp.value = b.getAttribute('data-p'); run(); }); });
+  var q = NK.getParam('ports'); if (q) inp.value = q;
+})();
+</script>
+<!--ARTICLE-->
+<h2>How the port check works</h2>
+<p>When you press the button, a server on the internet tries to open a TCP connection to each port you listed on your public IP address. The result is one of three states.</p>
+<ul>
+<li><strong>Open.</strong> A connection was accepted, so a service is listening and the path through your firewall and router is open.</li>
+<li><strong>Closed.</strong> Your IP answered with a refusal. The traffic reached you, but no service listens on that port.</li>
+<li><strong>No response.</strong> Nothing came back before the timeout. This is the usual result for a port blocked by a firewall, or one that is not forwarded to an inside device.</li>
+</ul>
+
+<h2>Testing port forwarding</h2>
+<ol>
+<li>Start the service on your device and confirm it works locally, for example by opening <code>http://localhost:8080</code>.</li>
+<li>Create the port forward on your router from the external port to your device's private address, and give the device a fixed IP or a DHCP reservation.</li>
+<li>Allow the port in the device's own firewall.</li>
+<li>Run this check. If the port shows as open, forwarding works.</li>
+</ol>
+
+<h2>Why a port may show as closed or not respond</h2>
+<ul>
+<li>The service is not running, or listens only on 127.0.0.1 and not on the network.</li>
+<li>The router forward points at the wrong internal address or protocol (TCP versus UDP).</li>
+<li>The device firewall blocks the port.</li>
+<li>Your ISP uses carrier-grade NAT, so your router has no public address of its own. Check whether the WAN address on your router matches the one shown by <a href="/what-is-my-ip/">What Is My IP</a>. If they differ, port forwarding cannot work, and you need a VPN or tunnel instead.</li>
+<li>Your ISP blocks common ports such as 25, 80 or 445 on residential lines.</li>
+</ul>
+<p>This checker tests TCP only. It cannot test UDP, because UDP has no handshake that reports whether a port is open.</p>
+
+<h2>Security advice</h2>
+<p>An open port is an exposed service. Keep only the ports you need open, keep software updated, and use strong authentication. Never expose remote desktop, SMB, databases or Telnet directly to the internet. Put administrative access behind a VPN instead. See the <a href="/port-numbers/">port numbers reference</a> for what each common port is used for.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>Can I check another person's server or IP address?</summary><p>No. The checker only tests the public IP address of the connection you are using. This prevents it from being used to scan other people's systems.</p></details>
+<details><summary>Why does it test my IP and not a host name?</summary><p>Because it checks the network you are on. To test a server at another location, run the check from a device on that network.</p></details>
+<details><summary>Is a closed port safer than one with no response?</summary><p>A port that gives no response reveals less, because it does not confirm that a host exists. A closed port still shows your IP is active. Both mean no service is reachable.</p></details>
+<details><summary>Do you store my IP address?</summary><p>This site does not save it or the results. The check reads the IP address of your request to run the test and returns the result to you. Like any web host, the hosting provider may keep standard technical request logs.</p></details>

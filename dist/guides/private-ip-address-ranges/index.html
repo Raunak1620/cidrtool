@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Private IP Address Ranges (RFC 1918): Complete List and Uses | NetKit</title>
+<meta name="description" content="The three private IPv4 ranges in RFC 1918, plus CGNAT, link-local, loopback and IPv6 unique local addresses, with sizes and guidance on which to choose.">
+<link rel="canonical" href="https://ipsubnetcalculatorcidr.vercel.app/guides/private-ip-address-ranges/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NetKit">
+<meta property="og:title" content="Private IP Address Ranges (RFC 1918): Complete List and Uses | NetKit">
+<meta property="og:description" content="The three private IPv4 ranges in RFC 1918, plus CGNAT, link-local, loopback and IPv6 unique local addresses, with sizes and guidance on which to choose.">
+<meta property="og:url" content="https://ipsubnetcalculatorcidr.vercel.app/guides/private-ip-address-ranges/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0b6bde">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem('nk-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="stylesheet" href="/assets/css/style.css?v=858db731">
+<meta name="google-site-verification" content="oRgN_HmHnESYTVTZSc6DEeby8Fb9GwQx34rpckJhfDA"><meta name="google-adsense-account" content="ca-pub-2676656110030246"><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2676656110030246" crossorigin="anonymous"></script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Private IP Address Ranges", "description": "The three private IPv4 ranges in RFC 1918, plus CGNAT, link-local, loopback and IPv6 unique local addresses, with sizes and guidance on which to choose.", "datePublished": "2026-11-22", "dateModified": "2026-11-22", "mainEntityOfPage": "https://ipsubnetcalculatorcidr.vercel.app/guides/private-ip-address-ranges/", "author": {"@type": "Organization", "name": "NetKit"}, "publisher": {"@type": "Organization", "name": "NetKit"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://ipsubnetcalculatorcidr.vercel.app/"}, {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://ipsubnetcalculatorcidr.vercel.app/guides/"}, {"@type": "ListItem", "position": 3, "name": "Private IP Address Ranges", "item": "https://ipsubnetcalculatorcidr.vercel.app/guides/private-ip-address-ranges/"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Can private addresses reach the internet?", "acceptedAnswer": {"@type": "Answer", "text": "Not directly. They need network address translation (NAT) at the edge, which rewrites them to a public address."}}, {"@type": "Question", "name": "Is 172.20.1.1 a private address?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. It lies inside 172.16.0.0/12."}}, {"@type": "Question", "name": "Is 100.64.0.1 private?", "acceptedAnswer": {"@type": "Answer", "text": "It is not RFC 1918 private space, but it is not publicly routable either. It is reserved for carrier-grade NAT."}}, {"@type": "Question", "name": "Can two companies use the same private range?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, and they usually do. Overlap only becomes a problem when the networks are connected, for example by a VPN or after a merger."}}]}</script>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">/24</span>NetKit</a>
+<div class="header-actions"><button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">Theme</button></div>
+</div></header>
+<nav class="tabs" aria-label="Tools"><div class="wrap"><a class="tab" href="/what-is-my-ip/">My IP</a><a class="tab" href="/cidr-calculator/">CIDR Calculator</a><a class="tab" href="/dns-lookup/">DNS Lookup</a><a class="tab" href="/bgp-asn-lookup/">BGP / ASN</a><a class="tab" href="/subnet-chart/">Subnet Chart</a><a class="tab" href="/port-numbers/">Port Numbers</a><a class="tab" href="/ip-converter/">IP Converter</a><a class="tab" href="/bandwidth-calculator/">Bandwidth Calc</a><a class="tab" href="/wildcard-mask-calculator/">Wildcard Mask</a><a class="tab" href="/vlsm-calculator/">VLSM Calculator</a><a class="tab" href="/route-summarization/">Route Summary</a><a class="tab" href="/speed-test/">Speed Test</a><a class="tab" href="/latency-ping-test/">Ping Test</a><a class="tab" href="/traceroute-analyzer/">Traceroute</a><a class="tab" href="/open-port-checker/">Port Checker</a><a class="tab" href="/guides/" aria-current="page">Guides</a></div></nav>
+<script src="/assets/js/net.js?v=a6fe9476"></script>
+<script src="/assets/js/app.js?v=411fe5fd"></script>
+<main><div class="wrap"><div class="layout"><div class="content"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> &rsaquo; <a href="/guides/">Guides</a> &rsaquo; Private IP Address Ranges</nav><h1>Private IP Address Ranges</h1><p class="lead">Private addresses are not routed on the public internet. Here are the ranges, how big each one is, and how to pick one for your network.</p><section class="article" style="margin-top:8px"><p>RFC 1918 reserves three blocks of IPv4 space for private networks. Anyone can use them inside their own network without registering, and routers on the internet do not forward them.</p>
+
+<h2>The three RFC 1918 ranges</h2>
+<div class="table-wrap"><table class="data"><thead><tr><th>CIDR block</th><th>Range</th><th>Addresses</th><th>Typical use</th></tr></thead><tbody>
+<tr><td class="mono">10.0.0.0/8</td><td class="mono">10.0.0.0 &ndash; 10.255.255.255</td><td>16,777,216</td><td>Large enterprises, data centres, cloud networks</td></tr>
+<tr><td class="mono">172.16.0.0/12</td><td class="mono">172.16.0.0 &ndash; 172.31.255.255</td><td>1,048,576</td><td>Mid-size networks, container platforms</td></tr>
+<tr><td class="mono">192.168.0.0/16</td><td class="mono">192.168.0.0 &ndash; 192.168.255.255</td><td>65,536</td><td>Homes, small offices, lab networks</td></tr>
+</tbody></table></div>
+<p>The middle block is a /12, so it ends at 172.31.255.255. Addresses such as 172.32.1.1 are public. This is a common mistake.</p>
+
+<h2>Other special IPv4 ranges</h2>
+<ul>
+<li><strong>100.64.0.0/10</strong> (RFC 6598) is shared address space for carrier-grade NAT. ISPs use it between customers and their NAT gateways.</li>
+<li><strong>169.254.0.0/16</strong> (RFC 3927) is link-local. A host that fails to get a DHCP lease often assigns itself an address here.</li>
+<li><strong>127.0.0.0/8</strong> is loopback. 127.0.0.1 always means "this machine".</li>
+<li><strong>192.0.2.0/24, 198.51.100.0/24 and 203.0.113.0/24</strong> (RFC 5737) are reserved for documentation and examples.</li>
+</ul>
+
+<h2>Private addresses in IPv6</h2>
+<p>IPv6 has unique local addresses in <code>fc00::/7</code>, which in practice means <code>fd00::/8</code> with a random 40-bit global ID. They are the equivalent of RFC 1918 space. IPv6 also has link-local addresses in <code>fe80::/10</code>, which every IPv6 interface uses for neighbour discovery.</p>
+
+<h2>Choosing a range</h2>
+<p>Many home routers default to 192.168.0.0/24 or 192.168.1.0/24. If you connect to a company VPN that uses the same subnet, routing breaks because both sides think the address is local. For that reason, pick something less common for any network you may need to join to another: a 10.x.y.0/24 with unusual values, or a block from 172.16.0.0/12. For a company, plan the 10.0.0.0/8 space in advance by giving each site or region a fixed block, so sites can be summarized and never overlap.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>Can private addresses reach the internet?</summary><p>Not directly. They need network address translation (NAT) at the edge, which rewrites them to a public address.</p></details>
+<details><summary>Is 172.20.1.1 a private address?</summary><p>Yes. It lies inside 172.16.0.0/12.</p></details>
+<details><summary>Is 100.64.0.1 private?</summary><p>It is not RFC 1918 private space, but it is not publicly routable either. It is reserved for carrier-grade NAT.</p></details>
+<details><summary>Can two companies use the same private range?</summary><p>Yes, and they usually do. Overlap only becomes a problem when the networks are connected, for example by a VPN or after a merger.</p></details><p class="muted" style="margin-top:22px">Last updated November 22, 2026.</p></section><section class="related"><h2>Related tools</h2><div class="cards"><a class="card" href="/cidr-calculator/"><span class="glyph">/24</span><h3>CIDR Calculator</h3><p>Network, broadcast, usable range, wildcard and subnet splitting for IPv4 and IPv6.</p></a><a class="card" href="/what-is-my-ip/"><span class="glyph">IP</span><h3>My IP</h3><p>Your public IPv4 and IPv6, ISP, ASN and location. Look up any IP.</p></a><a class="card" href="/subnet-chart/"><span class="glyph">/n</span><h3>Subnet Chart</h3><p>Searchable CIDR, netmask and wildcard chart for /0 to /32, plus IPv6 sizes.</p></a></div></section><section class="related"><h2>Keep reading</h2><div class="cards"><a class="card" href="/guides/public-vs-private-ip-and-nat/"><span class="glyph">Guide</span><h3>Public vs Private IP Addresses and NAT</h3><p>The difference between public and private IP addresses, how NAT and PAT let private hosts reach the internet, and the common problems NAT causes.</p></a><a class="card" href="/guides/cidr-notation-explained/"><span class="glyph">Guide</span><h3>CIDR Notation Explained</h3><p>CIDR notation explained clearly: what the slash number means, why it replaced classful addressing, how route aggregation works and how routers pick the longest prefix.</p></a><a class="card" href="/guides/common-subnet-sizes-and-when-to-use-them/"><span class="glyph">Guide</span><h3>Common Subnet Sizes and When to Use Them</h3><p>A quick reference of common IPv4 subnet sizes from /16 to /32 with masks, address counts, usable hosts and the situations where each size is normally used.</p></a></div></section></div></div></div></main>
+<footer class="site-footer"><div class="wrap">
+<div class="cols">
+<div><h4>NetKit</h4><p>Free online tools for network engineers. Calculators run in your browser; lookups use public APIs.</p></div>
+<div><h4>Tools</h4><ul><li><a href="/what-is-my-ip/">My IP</a></li><li><a href="/cidr-calculator/">CIDR Calculator</a></li><li><a href="/dns-lookup/">DNS Lookup</a></li><li><a href="/bgp-asn-lookup/">BGP / ASN</a></li><li><a href="/subnet-chart/">Subnet Chart</a></li><li><a href="/port-numbers/">Port Numbers</a></li><li><a href="/ip-converter/">IP Converter</a></li><li><a href="/bandwidth-calculator/">Bandwidth Calc</a></li><li><a href="/wildcard-mask-calculator/">Wildcard Mask</a></li><li><a href="/vlsm-calculator/">VLSM Calculator</a></li><li><a href="/route-summarization/">Route Summary</a></li><li><a href="/speed-test/">Speed Test</a></li><li><a href="/latency-ping-test/">Ping Test</a></li><li><a href="/traceroute-analyzer/">Traceroute</a></li><li><a href="/open-port-checker/">Port Checker</a></li></ul></div>
+<div><h4>Company</h4><ul><li><a href="/guides/">Guides</a></li><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+</div>
+<p class="fine">&copy; 2026 NetKit. Results are provided for information only; verify before using them in production changes.</p>
+</div></footer>
+</body>
+</html>

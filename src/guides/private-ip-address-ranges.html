@@ -1,0 +1,39 @@
+---
+slug: private-ip-address-ranges
+title: Private IP Address Ranges (RFC 1918): Complete List and Uses
+description: The three private IPv4 ranges in RFC 1918, plus CGNAT, link-local, loopback and IPv6 unique local addresses, with sizes and guidance on which to choose.
+h1: Private IP Address Ranges
+lead: Private addresses are not routed on the public internet. Here are the ranges, how big each one is, and how to pick one for your network.
+related: cidr-calculator, what-is-my-ip, subnet-chart
+guides: public-vs-private-ip-and-nat, cidr-notation-explained, common-subnet-sizes-and-when-to-use-them
+updated: 2026-11-22
+---
+<p>RFC 1918 reserves three blocks of IPv4 space for private networks. Anyone can use them inside their own network without registering, and routers on the internet do not forward them.</p>
+
+<h2>The three RFC 1918 ranges</h2>
+<div class="table-wrap"><table class="data"><thead><tr><th>CIDR block</th><th>Range</th><th>Addresses</th><th>Typical use</th></tr></thead><tbody>
+<tr><td class="mono">10.0.0.0/8</td><td class="mono">10.0.0.0 &ndash; 10.255.255.255</td><td>16,777,216</td><td>Large enterprises, data centres, cloud networks</td></tr>
+<tr><td class="mono">172.16.0.0/12</td><td class="mono">172.16.0.0 &ndash; 172.31.255.255</td><td>1,048,576</td><td>Mid-size networks, container platforms</td></tr>
+<tr><td class="mono">192.168.0.0/16</td><td class="mono">192.168.0.0 &ndash; 192.168.255.255</td><td>65,536</td><td>Homes, small offices, lab networks</td></tr>
+</tbody></table></div>
+<p>The middle block is a /12, so it ends at 172.31.255.255. Addresses such as 172.32.1.1 are public. This is a common mistake.</p>
+
+<h2>Other special IPv4 ranges</h2>
+<ul>
+<li><strong>100.64.0.0/10</strong> (RFC 6598) is shared address space for carrier-grade NAT. ISPs use it between customers and their NAT gateways.</li>
+<li><strong>169.254.0.0/16</strong> (RFC 3927) is link-local. A host that fails to get a DHCP lease often assigns itself an address here.</li>
+<li><strong>127.0.0.0/8</strong> is loopback. 127.0.0.1 always means "this machine".</li>
+<li><strong>192.0.2.0/24, 198.51.100.0/24 and 203.0.113.0/24</strong> (RFC 5737) are reserved for documentation and examples.</li>
+</ul>
+
+<h2>Private addresses in IPv6</h2>
+<p>IPv6 has unique local addresses in <code>fc00::/7</code>, which in practice means <code>fd00::/8</code> with a random 40-bit global ID. They are the equivalent of RFC 1918 space. IPv6 also has link-local addresses in <code>fe80::/10</code>, which every IPv6 interface uses for neighbour discovery.</p>
+
+<h2>Choosing a range</h2>
+<p>Many home routers default to 192.168.0.0/24 or 192.168.1.0/24. If you connect to a company VPN that uses the same subnet, routing breaks because both sides think the address is local. For that reason, pick something less common for any network you may need to join to another: a 10.x.y.0/24 with unusual values, or a block from 172.16.0.0/12. For a company, plan the 10.0.0.0/8 space in advance by giving each site or region a fixed block, so sites can be summarized and never overlap.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>Can private addresses reach the internet?</summary><p>Not directly. They need network address translation (NAT) at the edge, which rewrites them to a public address.</p></details>
+<details><summary>Is 172.20.1.1 a private address?</summary><p>Yes. It lies inside 172.16.0.0/12.</p></details>
+<details><summary>Is 100.64.0.1 private?</summary><p>It is not RFC 1918 private space, but it is not publicly routable either. It is reserved for carrier-grade NAT.</p></details>
+<details><summary>Can two companies use the same private range?</summary><p>Yes, and they usually do. Overlap only becomes a problem when the networks are connected, for example by a VPN or after a merger.</p></details>

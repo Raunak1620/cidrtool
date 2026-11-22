@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Common Subnet Sizes (/24 to /32): Host Counts and Typical Uses | NetKit</title>
+<meta name="description" content="A quick reference of common IPv4 subnet sizes from /16 to /32 with masks, address counts, usable hosts and the situations where each size is normally used.">
+<link rel="canonical" href="https://ipsubnetcalculatorcidr.vercel.app/guides/common-subnet-sizes-and-when-to-use-them/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NetKit">
+<meta property="og:title" content="Common Subnet Sizes (/24 to /32): Host Counts and Typical Uses | NetKit">
+<meta property="og:description" content="A quick reference of common IPv4 subnet sizes from /16 to /32 with masks, address counts, usable hosts and the situations where each size is normally used.">
+<meta property="og:url" content="https://ipsubnetcalculatorcidr.vercel.app/guides/common-subnet-sizes-and-when-to-use-them/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0b6bde">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem('nk-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="stylesheet" href="/assets/css/style.css?v=858db731">
+<meta name="google-site-verification" content="oRgN_HmHnESYTVTZSc6DEeby8Fb9GwQx34rpckJhfDA"><meta name="google-adsense-account" content="ca-pub-2676656110030246"><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2676656110030246" crossorigin="anonymous"></script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Common Subnet Sizes and When to Use Them", "description": "A quick reference of common IPv4 subnet sizes from /16 to /32 with masks, address counts, usable hosts and the situations where each size is normally used.", "datePublished": "2026-11-22", "dateModified": "2026-11-22", "mainEntityOfPage": "https://ipsubnetcalculatorcidr.vercel.app/guides/common-subnet-sizes-and-when-to-use-them/", "author": {"@type": "Organization", "name": "NetKit"}, "publisher": {"@type": "Organization", "name": "NetKit"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://ipsubnetcalculatorcidr.vercel.app/"}, {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://ipsubnetcalculatorcidr.vercel.app/guides/"}, {"@type": "ListItem", "position": 3, "name": "Common Subnet Sizes and When to Use Them", "item": "https://ipsubnetcalculatorcidr.vercel.app/guides/common-subnet-sizes-and-when-to-use-them/"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is the most common subnet size?", "acceptedAnswer": {"@type": "Answer", "text": "/24 for user networks and /30 or /31 for router links."}}, {"@type": "Question", "name": "Why are there only 2 usable hosts in a /30?", "acceptedAnswer": {"@type": "Answer", "text": "A /30 has four addresses. One is the network address and one is the broadcast, which leaves two for hosts."}}, {"@type": "Question", "name": "Can I have a /31 subnet?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, on point-to-point links under RFC 3021. There is no network or broadcast address, so both addresses are usable."}}]}</script>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">/24</span>NetKit</a>
+<div class="header-actions"><button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">Theme</button></div>
+</div></header>
+<nav class="tabs" aria-label="Tools"><div class="wrap"><a class="tab" href="/what-is-my-ip/">My IP</a><a class="tab" href="/cidr-calculator/">CIDR Calculator</a><a class="tab" href="/dns-lookup/">DNS Lookup</a><a class="tab" href="/bgp-asn-lookup/">BGP / ASN</a><a class="tab" href="/subnet-chart/">Subnet Chart</a><a class="tab" href="/port-numbers/">Port Numbers</a><a class="tab" href="/ip-converter/">IP Converter</a><a class="tab" href="/bandwidth-calculator/">Bandwidth Calc</a><a class="tab" href="/wildcard-mask-calculator/">Wildcard Mask</a><a class="tab" href="/vlsm-calculator/">VLSM Calculator</a><a class="tab" href="/route-summarization/">Route Summary</a><a class="tab" href="/speed-test/">Speed Test</a><a class="tab" href="/latency-ping-test/">Ping Test</a><a class="tab" href="/traceroute-analyzer/">Traceroute</a><a class="tab" href="/open-port-checker/">Port Checker</a><a class="tab" href="/guides/" aria-current="page">Guides</a></div></nav>
+<script src="/assets/js/net.js?v=a6fe9476"></script>
+<script src="/assets/js/app.js?v=411fe5fd"></script>
+<main><div class="wrap"><div class="layout"><div class="content"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> &rsaquo; <a href="/guides/">Guides</a> &rsaquo; Common Subnet Sizes and When to Use Them</nav><h1>Common Subnet Sizes and When to Use Them</h1><p class="lead">A practical reference for choosing a prefix length, with the number of usable hosts and a typical use for each common size.</p><section class="article" style="margin-top:8px"><p>Most real networks use a small set of prefix lengths. This table lists them with their masks, address counts and what they are usually used for.</p>
+
+<div class="table-wrap"><table class="data"><thead><tr><th>Prefix</th><th>Subnet mask</th><th>Addresses</th><th>Usable hosts</th><th>Typical use</th></tr></thead><tbody>
+<tr><td class="mono">/16</td><td class="mono">255.255.0.0</td><td>65,536</td><td>65,534</td><td>A whole site or cloud VPC block</td></tr>
+<tr><td class="mono">/20</td><td class="mono">255.255.240.0</td><td>4,096</td><td>4,094</td><td>A campus or large Kubernetes node range</td></tr>
+<tr><td class="mono">/22</td><td class="mono">255.255.252.0</td><td>1,024</td><td>1,022</td><td>Large user or Wi-Fi network</td></tr>
+<tr><td class="mono">/24</td><td class="mono">255.255.255.0</td><td>256</td><td>254</td><td>The standard VLAN or office subnet</td></tr>
+<tr><td class="mono">/25</td><td class="mono">255.255.255.128</td><td>128</td><td>126</td><td>Medium department</td></tr>
+<tr><td class="mono">/26</td><td class="mono">255.255.255.192</td><td>64</td><td>62</td><td>Small department or floor</td></tr>
+<tr><td class="mono">/27</td><td class="mono">255.255.255.224</td><td>32</td><td>30</td><td>Server group or DMZ</td></tr>
+<tr><td class="mono">/28</td><td class="mono">255.255.255.240</td><td>16</td><td>14</td><td>Small server or management segment</td></tr>
+<tr><td class="mono">/29</td><td class="mono">255.255.255.248</td><td>8</td><td>6</td><td>Small public block from an ISP</td></tr>
+<tr><td class="mono">/30</td><td class="mono">255.255.255.252</td><td>4</td><td>2</td><td>Point-to-point router link</td></tr>
+<tr><td class="mono">/31</td><td class="mono">255.255.255.254</td><td>2</td><td>2 (RFC 3021)</td><td>Point-to-point link without waste</td></tr>
+<tr><td class="mono">/32</td><td class="mono">255.255.255.255</td><td>1</td><td>1</td><td>Loopback or single host route</td></tr>
+</tbody></table></div>
+
+<h2>How to choose</h2>
+<p>Count the devices you have today, add growth, and pick the smallest prefix that fits. A common rule is to plan for 30 to 50 percent more hosts than you currently have. Then check that the subnet also leaves room for the gateway, any HSRP or VRRP addresses, and printers or other fixed-address devices.</p>
+
+<h2>The /24 default</h2>
+<p>A /24 is popular because the mask is easy to read, the last octet is the host number, and 254 hosts suits most VLANs. Bigger broadcast domains cause more broadcast and ARP traffic, so very large flat networks such as a /16 of user devices are normally avoided. If you need many hosts, use several /24 subnets and route between them.</p>
+
+<h2>Small subnets</h2>
+<p>A /30 is the classic point-to-point size, using two of four addresses. A /31 uses both addresses and saves half the space on large networks with many links, as long as the devices support it. A /32 is used for loopbacks, router IDs and host routes.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>What is the most common subnet size?</summary><p>/24 for user networks and /30 or /31 for router links.</p></details>
+<details><summary>Why are there only 2 usable hosts in a /30?</summary><p>A /30 has four addresses. One is the network address and one is the broadcast, which leaves two for hosts.</p></details>
+<details><summary>Can I have a /31 subnet?</summary><p>Yes, on point-to-point links under RFC 3021. There is no network or broadcast address, so both addresses are usable.</p></details><p class="muted" style="margin-top:22px">Last updated November 22, 2026.</p></section><section class="related"><h2>Related tools</h2><div class="cards"><a class="card" href="/subnet-chart/"><span class="glyph">/n</span><h3>Subnet Chart</h3><p>Searchable CIDR, netmask and wildcard chart for /0 to /32, plus IPv6 sizes.</p></a><a class="card" href="/vlsm-calculator/"><span class="glyph">VL</span><h3>VLSM Calculator</h3><p>Plan variable length subnets from host counts with ranges and spare capacity.</p></a><a class="card" href="/cidr-calculator/"><span class="glyph">/24</span><h3>CIDR Calculator</h3><p>Network, broadcast, usable range, wildcard and subnet splitting for IPv4 and IPv6.</p></a></div></section><section class="related"><h2>Keep reading</h2><div class="cards"><a class="card" href="/guides/how-many-hosts-in-a-subnet/"><span class="glyph">Guide</span><h3>How Many Hosts Are in a Subnet?</h3><p>Calculate usable hosts in any IPv4 subnet with 2^n minus 2. Includes a /8 to /32 table, the /31 and /32 exceptions and how to choose a prefix for a host count.</p></a><a class="card" href="/guides/vlsm-tutorial/"><span class="glyph">Guide</span><h3>VLSM Tutorial</h3><p>A step-by-step VLSM tutorial. Learn to allocate variable length subnets from one address block, with a worked example that fits four segments into a /24.</p></a><a class="card" href="/guides/how-subnetting-works/"><span class="glyph">Guide</span><h3>How Subnetting Works</h3><p>Learn how subnetting works with a clear step-by-step method: network and host bits, subnet masks, block size and a fully worked example for 192.168.10.77/26.</p></a></div></section></div></div></div></main>
+<footer class="site-footer"><div class="wrap">
+<div class="cols">
+<div><h4>NetKit</h4><p>Free online tools for network engineers. Calculators run in your browser; lookups use public APIs.</p></div>
+<div><h4>Tools</h4><ul><li><a href="/what-is-my-ip/">My IP</a></li><li><a href="/cidr-calculator/">CIDR Calculator</a></li><li><a href="/dns-lookup/">DNS Lookup</a></li><li><a href="/bgp-asn-lookup/">BGP / ASN</a></li><li><a href="/subnet-chart/">Subnet Chart</a></li><li><a href="/port-numbers/">Port Numbers</a></li><li><a href="/ip-converter/">IP Converter</a></li><li><a href="/bandwidth-calculator/">Bandwidth Calc</a></li><li><a href="/wildcard-mask-calculator/">Wildcard Mask</a></li><li><a href="/vlsm-calculator/">VLSM Calculator</a></li><li><a href="/route-summarization/">Route Summary</a></li><li><a href="/speed-test/">Speed Test</a></li><li><a href="/latency-ping-test/">Ping Test</a></li><li><a href="/traceroute-analyzer/">Traceroute</a></li><li><a href="/open-port-checker/">Port Checker</a></li></ul></div>
+<div><h4>Company</h4><ul><li><a href="/guides/">Guides</a></li><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+</div>
+<p class="fine">&copy; 2026 NetKit. Results are provided for information only; verify before using them in production changes.</p>
+</div></footer>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bandwidth-Delay Product and TCP Throughput Explained | NetKit</title>
+<meta name="description" content="Why a fast link can still give slow transfers. Learn the bandwidth-delay product, how the TCP window limits throughput, and how to calculate the window you need.">
+<link rel="canonical" href="https://ipsubnetcalculatorcidr.vercel.app/guides/bandwidth-delay-product-and-tcp-throughput/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NetKit">
+<meta property="og:title" content="Bandwidth-Delay Product and TCP Throughput Explained | NetKit">
+<meta property="og:description" content="Why a fast link can still give slow transfers. Learn the bandwidth-delay product, how the TCP window limits throughput, and how to calculate the window you need.">
+<meta property="og:url" content="https://ipsubnetcalculatorcidr.vercel.app/guides/bandwidth-delay-product-and-tcp-throughput/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0b6bde">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem('nk-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="stylesheet" href="/assets/css/style.css?v=858db731">
+<meta name="google-site-verification" content="oRgN_HmHnESYTVTZSc6DEeby8Fb9GwQx34rpckJhfDA"><meta name="google-adsense-account" content="ca-pub-2676656110030246"><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2676656110030246" crossorigin="anonymous"></script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Bandwidth-Delay Product and TCP Throughput", "description": "Why a fast link can still give slow transfers. Learn the bandwidth-delay product, how the TCP window limits throughput, and how to calculate the window you need.", "datePublished": "2026-11-22", "dateModified": "2026-11-22", "mainEntityOfPage": "https://ipsubnetcalculatorcidr.vercel.app/guides/bandwidth-delay-product-and-tcp-throughput/", "author": {"@type": "Organization", "name": "NetKit"}, "publisher": {"@type": "Organization", "name": "NetKit"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://ipsubnetcalculatorcidr.vercel.app/"}, {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://ipsubnetcalculatorcidr.vercel.app/guides/"}, {"@type": "ListItem", "position": 3, "name": "Bandwidth-Delay Product and TCP Throughput", "item": "https://ipsubnetcalculatorcidr.vercel.app/guides/bandwidth-delay-product-and-tcp-throughput/"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Does a faster link fix slow long-distance transfers?", "acceptedAnswer": {"@type": "Answer", "text": "Not by itself. If the window is the limit, throughput stays the same however fast the link is."}}, {"@type": "Question", "name": "Is the BDP counted in bits or bytes?", "acceptedAnswer": {"@type": "Answer", "text": "Bandwidth is in bits per second, so the result is in bits. Divide by 8 to get bytes, which is what buffer sizes are measured in."}}, {"@type": "Question", "name": "What RTT should I use?", "acceptedAnswer": {"@type": "Answer", "text": "The full round trip between the two hosts, as measured by ping, not the one-way delay."}}]}</script>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">/24</span>NetKit</a>
+<div class="header-actions"><button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">Theme</button></div>
+</div></header>
+<nav class="tabs" aria-label="Tools"><div class="wrap"><a class="tab" href="/what-is-my-ip/">My IP</a><a class="tab" href="/cidr-calculator/">CIDR Calculator</a><a class="tab" href="/dns-lookup/">DNS Lookup</a><a class="tab" href="/bgp-asn-lookup/">BGP / ASN</a><a class="tab" href="/subnet-chart/">Subnet Chart</a><a class="tab" href="/port-numbers/">Port Numbers</a><a class="tab" href="/ip-converter/">IP Converter</a><a class="tab" href="/bandwidth-calculator/">Bandwidth Calc</a><a class="tab" href="/wildcard-mask-calculator/">Wildcard Mask</a><a class="tab" href="/vlsm-calculator/">VLSM Calculator</a><a class="tab" href="/route-summarization/">Route Summary</a><a class="tab" href="/speed-test/">Speed Test</a><a class="tab" href="/latency-ping-test/">Ping Test</a><a class="tab" href="/traceroute-analyzer/">Traceroute</a><a class="tab" href="/open-port-checker/">Port Checker</a><a class="tab" href="/guides/" aria-current="page">Guides</a></div></nav>
+<script src="/assets/js/net.js?v=a6fe9476"></script>
+<script src="/assets/js/app.js?v=411fe5fd"></script>
+<main><div class="wrap"><div class="layout"><div class="content"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> &rsaquo; <a href="/guides/">Guides</a> &rsaquo; Bandwidth-Delay Product and TCP Throughput</nav><h1>Bandwidth-Delay Product and TCP Throughput</h1><p class="lead">A fast link does not guarantee a fast transfer. Latency and window size set the real limit, and this guide shows how to calculate it.</p><section class="article" style="margin-top:8px"><p>When a file copy over a 1 Gbps WAN link only reaches 10 Mbps, the link is rarely the problem. The cause is usually the interaction between TCP and round-trip time.</p>
+
+<h2>The bandwidth-delay product</h2>
+<p>The bandwidth-delay product (BDP) is the amount of data that is "in flight" on a path at any moment:</p>
+<pre class="code">BDP (bits) = bandwidth (bits per second) &times; round-trip time (seconds)</pre>
+<p>For a 1 Gbps link with a 50 ms round-trip time: 1,000,000,000 &times; 0.05 = 50,000,000 bits, which is 6,250,000 bytes, about 6.25 MB. To keep that link full, the sender must be able to have 6.25 MB of unacknowledged data outstanding.</p>
+
+<h2>How the TCP window limits speed</h2>
+<p>TCP will not send more than the receive window of unacknowledged data. So the maximum throughput of one connection is:</p>
+<pre class="code">throughput &le; window size &divide; round-trip time</pre>
+<p>Without window scaling, the TCP window field is 16 bits, so the largest window is 65,535 bytes. On the same 50 ms path: 65,535 &times; 8 = 524,280 bits, divided by 0.05 s gives about 10.5 Mbps. That matches the symptom above: the 1 Gbps link is idle most of the time.</p>
+
+<h2>More examples</h2>
+<div class="table-wrap"><table class="data"><thead><tr><th>Link</th><th>RTT</th><th>BDP</th></tr></thead><tbody>
+<tr><td>100 Mbps</td><td>20 ms</td><td>250,000 bytes (about 244 KiB)</td></tr>
+<tr><td>1 Gbps</td><td>50 ms</td><td>6,250,000 bytes (about 6.25 MB)</td></tr>
+<tr><td>10 Gbps</td><td>100 ms</td><td>125,000,000 bytes (125 MB)</td></tr>
+</tbody></table></div>
+
+<h2>How to fix it</h2>
+<ul>
+<li><strong>Window scaling</strong> (RFC 7323) lets TCP advertise windows far above 64 KB. Modern operating systems enable it by default, but firewalls or middleboxes that strip TCP options can disable it.</li>
+<li><strong>Larger buffers.</strong> Socket buffers must be at least the BDP. On Linux, the <code>net.ipv4.tcp_rmem</code> and <code>tcp_wmem</code> settings cap how large the window can grow.</li>
+<li><strong>Parallel connections</strong> multiply the achievable throughput, which is why download tools open several streams.</li>
+<li><strong>Reduce RTT</strong> with a closer server, a CDN, or WAN acceleration.</li>
+<li><strong>Loss matters too.</strong> Even a small packet loss rate cuts throughput sharply on long paths, and the loss-based congestion control in classic TCP reacts strongly to it.</li>
+</ul>
+
+<h2>Measuring it</h2>
+<p>Measure RTT with <code>ping</code> and run a transfer test such as <code>iperf3</code> with a single stream, then with several, to see whether the window is the bottleneck. Use the <a href="/bandwidth-calculator/">bandwidth calculator</a> to convert between units and estimate transfer times.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>Does a faster link fix slow long-distance transfers?</summary><p>Not by itself. If the window is the limit, throughput stays the same however fast the link is.</p></details>
+<details><summary>Is the BDP counted in bits or bytes?</summary><p>Bandwidth is in bits per second, so the result is in bits. Divide by 8 to get bytes, which is what buffer sizes are measured in.</p></details>
+<details><summary>What RTT should I use?</summary><p>The full round trip between the two hosts, as measured by ping, not the one-way delay.</p></details><p class="muted" style="margin-top:22px">Last updated November 22, 2026.</p></section><section class="related"><h2>Related tools</h2><div class="cards"><a class="card" href="/bandwidth-calculator/"><span class="glyph">Mb/s</span><h3>Bandwidth Calc</h3><p>Transfer time, required bandwidth, bandwidth-delay product and TCP throughput.</p></a><a class="card" href="/what-is-my-ip/"><span class="glyph">IP</span><h3>My IP</h3><p>Your public IPv4 and IPv6, ISP, ASN and location. Look up any IP.</p></a><a class="card" href="/port-numbers/"><span class="glyph">:443</span><h3>Port Numbers</h3><p>Searchable list of common TCP/UDP ports and IP protocol numbers.</p></a></div></section><section class="related"><h2>Keep reading</h2><div class="cards"><a class="card" href="/guides/dns-record-types-explained/"><span class="glyph">Guide</span><h3>DNS Record Types Explained</h3><p>A plain-language guide to the common DNS record types, what each one does, and an example of how it looks in a zone file.</p></a><a class="card" href="/guides/bgp-asn-rpki-explained/"><span class="glyph">Guide</span><h3>BGP, ASNs and RPKI Explained</h3><p>What an autonomous system number is, how BGP uses it to exchange routes, how to read an AS path, and how RPKI route origin validation protects against route hijacks.</p></a></div></section></div></div></div></main>
+<footer class="site-footer"><div class="wrap">
+<div class="cols">
+<div><h4>NetKit</h4><p>Free online tools for network engineers. Calculators run in your browser; lookups use public APIs.</p></div>
+<div><h4>Tools</h4><ul><li><a href="/what-is-my-ip/">My IP</a></li><li><a href="/cidr-calculator/">CIDR Calculator</a></li><li><a href="/dns-lookup/">DNS Lookup</a></li><li><a href="/bgp-asn-lookup/">BGP / ASN</a></li><li><a href="/subnet-chart/">Subnet Chart</a></li><li><a href="/port-numbers/">Port Numbers</a></li><li><a href="/ip-converter/">IP Converter</a></li><li><a href="/bandwidth-calculator/">Bandwidth Calc</a></li><li><a href="/wildcard-mask-calculator/">Wildcard Mask</a></li><li><a href="/vlsm-calculator/">VLSM Calculator</a></li><li><a href="/route-summarization/">Route Summary</a></li><li><a href="/speed-test/">Speed Test</a></li><li><a href="/latency-ping-test/">Ping Test</a></li><li><a href="/traceroute-analyzer/">Traceroute</a></li><li><a href="/open-port-checker/">Port Checker</a></li></ul></div>
+<div><h4>Company</h4><ul><li><a href="/guides/">Guides</a></li><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+</div>
+<p class="fine">&copy; 2026 NetKit. Results are provided for information only; verify before using them in production changes.</p>
+</div></footer>
+</body>
+</html>

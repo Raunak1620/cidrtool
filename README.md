@@ -58,3 +58,8 @@ node tests/test_net.js      # IP math unit tests
 node tests/browser_test.js  # Playwright UI tests with mocked APIs (serve dist on :8123 first)
 node tests/home_test.js     # Playwright tests for the home page viewer
 ```
+
+## Serverless function (open port checker)
+`api/port-check.js` is a Vercel function that tests TCP ports on the *caller's own* public IP only (no target parameter, max 10 ports, 3 s timeout).
+After deploying, open `/open-port-checker/` and press "Check ports". If it says the service is unavailable, check Vercel > Project > Functions for errors.
+The rest of the site is static; `python3 build.py` regenerates `dist/`, which you commit with the rest.

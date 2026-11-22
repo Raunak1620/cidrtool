@@ -1,0 +1,52 @@
+---
+slug: dns-record-types-explained
+title: DNS Record Types Explained: A, AAAA, CNAME, MX, TXT, NS and More
+description: A plain-language guide to the common DNS record types, what each one does, and an example of how it looks in a zone file.
+h1: DNS Record Types Explained
+lead: Every DNS record has a type that says what the answer means. These are the ones you will meet most often and what each is for.
+related: dns-lookup, what-is-my-ip, bgp-asn-lookup
+guides: public-vs-private-ip-and-nat, ipv4-vs-ipv6-subnetting, bgp-asn-rpki-explained
+updated: 2026-11-22
+---
+<p>The Domain Name System maps names to data. Each piece of data is stored in a record with a type, a name, a value and a time to live (TTL), the number of seconds a resolver may cache it.</p>
+
+<h2>Common record types</h2>
+<div class="table-wrap"><table class="data"><thead><tr><th>Type</th><th>Purpose</th><th>Example value</th></tr></thead><tbody>
+<tr><td class="mono">A</td><td>Name to IPv4 address</td><td class="mono">192.0.2.10</td></tr>
+<tr><td class="mono">AAAA</td><td>Name to IPv6 address</td><td class="mono">2001:db8::10</td></tr>
+<tr><td class="mono">CNAME</td><td>Alias to another name</td><td class="mono">www.example.com. &rarr; example.com.</td></tr>
+<tr><td class="mono">MX</td><td>Mail servers, with a priority</td><td class="mono">10 mail.example.com.</td></tr>
+<tr><td class="mono">TXT</td><td>Free text, used for SPF, DKIM and verification</td><td class="mono">"v=spf1 include:_spf.example.net ~all"</td></tr>
+<tr><td class="mono">NS</td><td>Authoritative name servers for a zone</td><td class="mono">ns1.example.com.</td></tr>
+<tr><td class="mono">SOA</td><td>Zone metadata: primary server, serial, timers</td><td class="mono">ns1.example.com. admin.example.com. 2026112201 ...</td></tr>
+<tr><td class="mono">PTR</td><td>IP address back to a name (reverse DNS)</td><td class="mono">mail.example.com.</td></tr>
+<tr><td class="mono">SRV</td><td>Service location with port and priority</td><td class="mono">10 5 5060 sip.example.com.</td></tr>
+<tr><td class="mono">CAA</td><td>Which certificate authorities may issue certificates</td><td class="mono">0 issue "letsencrypt.org"</td></tr>
+</tbody></table></div>
+
+<h2>A and AAAA</h2>
+<p>These are the records most people think of. A domain can have several A records, and resolvers rotate through them, which gives a simple form of load balancing. Publish an AAAA record alongside an A record to support IPv6.</p>
+
+<h2>CNAME</h2>
+<p>A CNAME says "this name is an alias for that one". A name with a CNAME cannot have any other record type, which is why you cannot put a CNAME at the zone apex (such as <code>example.com</code>), where NS and SOA records must exist. Some providers offer an ALIAS or ANAME flattening feature to work around this.</p>
+
+<h2>MX and email records</h2>
+<p>MX records point to the mail servers for a domain. Lower priority numbers are tried first. Email authentication relies on TXT records: SPF lists the servers allowed to send, DKIM publishes the public key for signatures at a selector name, and DMARC at <code>_dmarc.example.com</code> says what receivers should do with failures.</p>
+
+<h2>NS and delegation</h2>
+<p>NS records name the servers that are authoritative for a zone. The parent zone holds NS records for the child, which is how delegation works. If those records disagree with the child's own NS set, resolution can fail in confusing ways, so check both.</p>
+
+<h2>PTR and reverse DNS</h2>
+<p>Reverse lookups use special zones. The address 192.0.2.10 is looked up as <code>10.2.0.192.in-addr.arpa</code>. Mail servers often check that the sending IP has a PTR record, so set one for any server that sends email.</p>
+
+<h2>Troubleshooting tips</h2>
+<ul>
+<li>Query the authoritative server directly to avoid cached results.</li>
+<li>After a change, the old value can persist for up to the old TTL, so lower the TTL before planned changes.</li>
+<li>Use the <a href="/dns-lookup/">DNS lookup tool</a> to check any record type from a public resolver.</li>
+</ul>
+
+<h2>Frequently asked questions</h2>
+<details><summary>Why can't I add a CNAME at the root of my domain?</summary><p>The root already needs SOA and NS records, and a CNAME cannot coexist with other records on the same name.</p></details>
+<details><summary>What does TTL mean?</summary><p>It is the number of seconds a resolver may cache a record before asking again.</p></details>
+<details><summary>How many MX records should I have?</summary><p>At least one. Having two or more with different priorities gives a backup if the primary is down.</p></details>

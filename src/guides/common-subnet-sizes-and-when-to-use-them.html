@@ -1,0 +1,40 @@
+---
+slug: common-subnet-sizes-and-when-to-use-them
+title: Common Subnet Sizes (/24 to /32): Host Counts and Typical Uses
+description: A quick reference of common IPv4 subnet sizes from /16 to /32 with masks, address counts, usable hosts and the situations where each size is normally used.
+h1: Common Subnet Sizes and When to Use Them
+lead: A practical reference for choosing a prefix length, with the number of usable hosts and a typical use for each common size.
+related: subnet-chart, vlsm-calculator, cidr-calculator
+guides: how-many-hosts-in-a-subnet, vlsm-tutorial, how-subnetting-works
+updated: 2026-11-22
+---
+<p>Most real networks use a small set of prefix lengths. This table lists them with their masks, address counts and what they are usually used for.</p>
+
+<div class="table-wrap"><table class="data"><thead><tr><th>Prefix</th><th>Subnet mask</th><th>Addresses</th><th>Usable hosts</th><th>Typical use</th></tr></thead><tbody>
+<tr><td class="mono">/16</td><td class="mono">255.255.0.0</td><td>65,536</td><td>65,534</td><td>A whole site or cloud VPC block</td></tr>
+<tr><td class="mono">/20</td><td class="mono">255.255.240.0</td><td>4,096</td><td>4,094</td><td>A campus or large Kubernetes node range</td></tr>
+<tr><td class="mono">/22</td><td class="mono">255.255.252.0</td><td>1,024</td><td>1,022</td><td>Large user or Wi-Fi network</td></tr>
+<tr><td class="mono">/24</td><td class="mono">255.255.255.0</td><td>256</td><td>254</td><td>The standard VLAN or office subnet</td></tr>
+<tr><td class="mono">/25</td><td class="mono">255.255.255.128</td><td>128</td><td>126</td><td>Medium department</td></tr>
+<tr><td class="mono">/26</td><td class="mono">255.255.255.192</td><td>64</td><td>62</td><td>Small department or floor</td></tr>
+<tr><td class="mono">/27</td><td class="mono">255.255.255.224</td><td>32</td><td>30</td><td>Server group or DMZ</td></tr>
+<tr><td class="mono">/28</td><td class="mono">255.255.255.240</td><td>16</td><td>14</td><td>Small server or management segment</td></tr>
+<tr><td class="mono">/29</td><td class="mono">255.255.255.248</td><td>8</td><td>6</td><td>Small public block from an ISP</td></tr>
+<tr><td class="mono">/30</td><td class="mono">255.255.255.252</td><td>4</td><td>2</td><td>Point-to-point router link</td></tr>
+<tr><td class="mono">/31</td><td class="mono">255.255.255.254</td><td>2</td><td>2 (RFC 3021)</td><td>Point-to-point link without waste</td></tr>
+<tr><td class="mono">/32</td><td class="mono">255.255.255.255</td><td>1</td><td>1</td><td>Loopback or single host route</td></tr>
+</tbody></table></div>
+
+<h2>How to choose</h2>
+<p>Count the devices you have today, add growth, and pick the smallest prefix that fits. A common rule is to plan for 30 to 50 percent more hosts than you currently have. Then check that the subnet also leaves room for the gateway, any HSRP or VRRP addresses, and printers or other fixed-address devices.</p>
+
+<h2>The /24 default</h2>
+<p>A /24 is popular because the mask is easy to read, the last octet is the host number, and 254 hosts suits most VLANs. Bigger broadcast domains cause more broadcast and ARP traffic, so very large flat networks such as a /16 of user devices are normally avoided. If you need many hosts, use several /24 subnets and route between them.</p>
+
+<h2>Small subnets</h2>
+<p>A /30 is the classic point-to-point size, using two of four addresses. A /31 uses both addresses and saves half the space on large networks with many links, as long as the devices support it. A /32 is used for loopbacks, router IDs and host routes.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>What is the most common subnet size?</summary><p>/24 for user networks and /30 or /31 for router links.</p></details>
+<details><summary>Why are there only 2 usable hosts in a /30?</summary><p>A /30 has four addresses. One is the network address and one is the broadcast, which leaves two for hosts.</p></details>
+<details><summary>Can I have a /31 subnet?</summary><p>Yes, on point-to-point links under RFC 3021. There is no network or broadcast address, so both addresses are usable.</p></details>

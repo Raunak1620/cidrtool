@@ -1,0 +1,46 @@
+---
+slug: public-vs-private-ip-and-nat
+title: Public vs Private IP Addresses and How NAT Works
+description: The difference between public and private IP addresses, how NAT and PAT let private hosts reach the internet, and the common problems NAT causes.
+h1: Public vs Private IP Addresses and NAT
+lead: Your devices have a private address, but websites see a different public one. This guide explains why, and how network address translation connects the two.
+related: what-is-my-ip, cidr-calculator, port-numbers
+guides: private-ip-address-ranges, ipv4-vs-ipv6-subnetting, bgp-asn-rpki-explained
+updated: 2026-11-22
+---
+<p>A <strong>public IP address</strong> is unique across the internet and can be routed anywhere. A <strong>private IP address</strong> comes from a reserved range such as 192.168.0.0/16 and only has meaning inside one network. Many private networks reuse the same ranges, so private addresses cannot be reached from outside directly.</p>
+
+<h2>Why the two exist</h2>
+<p>IPv4 has about 4.3 billion addresses, which is far fewer than the number of connected devices. Private addressing plus NAT lets a whole home or company share one or a few public addresses.</p>
+
+<h2>How NAT works</h2>
+<p>A NAT device, usually your router or firewall, sits between the private network and the internet. When a private host sends a packet out, the device replaces the source address with its own public address and records the mapping. When the reply returns, it uses the record to restore the private destination address and forward the packet.</p>
+
+<h2>PAT, or NAT overload</h2>
+<p>Most home and office networks use port address translation. Many private hosts share one public address, and the device tells their connections apart by rewriting the source port. For example, 192.168.1.10:51000 and 192.168.1.11:51000 might become 203.0.113.5:40001 and 203.0.113.5:40002. This is what the "NAT overload" command configures on Cisco routers, and it is why the address that a site like <a href="/what-is-my-ip/">What Is My IP</a> shows is your router's public address, not your device's.</p>
+
+<h2>Types of NAT</h2>
+<ul>
+<li><strong>Static NAT</strong> maps one private address to one public address permanently. It is used to publish a server.</li>
+<li><strong>Dynamic NAT</strong> maps private addresses to a pool of public addresses on demand.</li>
+<li><strong>PAT</strong> maps many private addresses to one public address using ports.</li>
+<li><strong>Port forwarding</strong> sends inbound traffic for a specific public port to an internal host.</li>
+<li><strong>Carrier-grade NAT</strong> is done by an ISP, so several customers share one public address. Port forwarding does not work through it.</li>
+</ul>
+
+<h2>Problems NAT causes</h2>
+<ul>
+<li>Inbound connections need port forwarding, because the device has no mapping for unsolicited traffic.</li>
+<li>Protocols that carry IP addresses inside the data, such as some VoIP and FTP modes, need an application-layer helper.</li>
+<li>Overlapping private ranges break VPNs and mergers, since both sides use the same addresses.</li>
+<li>Logs show only the public address, so tracing activity to one device needs the NAT translation table.</li>
+</ul>
+
+<h2>NAT is not a firewall</h2>
+<p>NAT blocks unsolicited inbound traffic as a side effect, but it was not designed for security. A stateful firewall is what provides protection, and with IPv6 you rely on it because NAT is usually not used.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>Why is my public IP different from my device's IP?</summary><p>Your device has a private address. Your router translates it to the public address it holds from your ISP.</p></details>
+<details><summary>Does a VPN change my public IP?</summary><p>Yes. Traffic leaves from the VPN provider's public address instead of your router's.</p></details>
+<details><summary>Can two devices have the same private IP?</summary><p>Yes, if they are on different networks. They cannot share an address on the same network.</p></details>
+<details><summary>Does IPv6 need NAT?</summary><p>Not normally. There are enough addresses for every device to have a globally routable one.</p></details>

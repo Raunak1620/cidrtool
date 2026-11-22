@@ -1,0 +1,89 @@
+---
+slug: how-subnetting-works
+title: How Subnetting Works: A Step-by-Step Guide with Examples
+description: Learn how subnetting works with a clear step-by-step method: network and host bits, subnet masks, block size and a fully worked example for 192.168.10.77/26.
+h1: How Subnetting Works
+lead: Subnetting splits one IP network into smaller ones by moving the boundary between network bits and host bits. This guide walks through the method step by step.
+related: cidr-calculator, subnet-chart, vlsm-calculator
+guides: how-many-hosts-in-a-subnet, vlsm-tutorial, cidr-notation-explained
+updated: 2026-11-21
+---
+<p>Subnetting divides one IP network into several smaller networks, called subnets. You do it by borrowing bits from the host part of the address and using them as extra network bits. Every borrowed bit doubles the number of subnets and halves the number of addresses in each one. Once you can find the block size for a prefix, the rest is simple arithmetic.</p>
+
+<h2>Network bits and host bits</h2>
+<p>An IPv4 address is 32 bits long, usually written as four decimal numbers called octets. The prefix length, the number after the slash, says how many of the leading bits identify the network. The remaining bits identify individual hosts on that network. Two devices are on the same subnet when their network bits are identical.</p>
+<p>Take 192.168.10.77/26. Written in binary the address is:</p>
+<pre class="code">11000000.10101000.00001010.01001101
+|------ 26 network bits ------|-6 host-|</pre>
+<p>The first 26 bits are the network part. The last 6 bits are the host part. Everything that follows is a way of working out where that boundary falls and what it means.</p>
+
+<h2>The subnet mask</h2>
+<p>The subnet mask writes the prefix as four octets. It has a 1 for every network bit and a 0 for every host bit. For /26 that is 26 ones followed by 6 zeros:</p>
+<pre class="code">11111111.11111111.11111111.11000000  =  255.255.255.192</pre>
+<p>A full octet of eight ones is 255. An octet with only some ones is worth 256 minus 2<sup>(8 minus the number of ones)</sup>. In the last octet of a /26 there are two ones, so the value is 256 &minus; 2<sup>6</sup> = 256 &minus; 64 = 192. The eight values that appear in a mask are 128, 192, 224, 240, 248, 252, 254 and 255. The <a href="/cidr/26/">/26 reference page</a> lists the mask, wildcard and host count for this prefix, and the <a href="/subnet-chart/">subnet chart</a> covers every prefix.</p>
+
+<h2>Step by step: finding the subnet for 192.168.10.77/26</h2>
+<p>The question is: which subnet does 192.168.10.77 belong to, and what are its first address, last address and usable range?</p>
+<ol>
+<li><strong>Count the host bits.</strong> 32 &minus; 26 = 6 host bits. A subnet therefore contains 2<sup>6</sup> = 64 addresses.</li>
+<li><strong>Find the interesting octet.</strong> This is the octet where the mask is neither 255 nor 0. Here it is the fourth octet, with a mask value of 192.</li>
+<li><strong>Calculate the block size.</strong> 256 &minus; 192 = 64. Subnets in this octet start at multiples of 64: 0, 64, 128 and 192.</li>
+<li><strong>Find the network address.</strong> 77 lies between 64 and 127, so the subnet starts at 64. The network address is 192.168.10.64.</li>
+<li><strong>Find the broadcast address.</strong> It is one less than the start of the next subnet. The next subnet starts at 128, so the broadcast address is 192.168.10.127.</li>
+<li><strong>Find the usable range.</strong> Everything between the two: 192.168.10.65 to 192.168.10.126, which is 62 hosts.</li>
+</ol>
+<p>You can confirm the network address with a bitwise AND of the address and the mask:</p>
+<pre class="code">  01001101   (77, last octet of the address)
+  11000000   (192, last octet of the mask)
+  --------
+  01000000   (64, last octet of the network address)</pre>
+<p>The first three octets of the mask are 255, so they pass through unchanged. That is why the network address is 192.168.10.64.</p>
+
+<h2>Splitting a network into equal subnets</h2>
+<p>Start with 192.168.10.0/24, which has 8 host bits. If you borrow 2 of them, the prefix becomes /26 and you get 2<sup>2</sup> = 4 subnets of 64 addresses each:</p>
+<div class="table-wrap"><table class="data">
+<thead><tr><th>Subnet</th><th>Usable range</th><th>Broadcast</th></tr></thead>
+<tbody>
+<tr><td>192.168.10.0/26</td><td>192.168.10.1 to 192.168.10.62</td><td>192.168.10.63</td></tr>
+<tr><td>192.168.10.64/26</td><td>192.168.10.65 to 192.168.10.126</td><td>192.168.10.127</td></tr>
+<tr><td>192.168.10.128/26</td><td>192.168.10.129 to 192.168.10.190</td><td>192.168.10.191</td></tr>
+<tr><td>192.168.10.192/26</td><td>192.168.10.193 to 192.168.10.254</td><td>192.168.10.255</td></tr>
+</tbody></table></div>
+<p>The general rule is that borrowing <em>n</em> bits gives 2<sup><em>n</em></sup> subnets. This table shows the common cases starting from a /24:</p>
+<div class="table-wrap"><table class="data">
+<thead><tr><th>Bits borrowed</th><th>New prefix</th><th>Subnets</th><th>Addresses each</th><th>Usable hosts each</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>/25</td><td>2</td><td>128</td><td>126</td></tr>
+<tr><td>2</td><td>/26</td><td>4</td><td>64</td><td>62</td></tr>
+<tr><td>3</td><td>/27</td><td>8</td><td>32</td><td>30</td></tr>
+<tr><td>4</td><td>/28</td><td>16</td><td>16</td><td>14</td></tr>
+<tr><td>5</td><td>/29</td><td>32</td><td>8</td><td>6</td></tr>
+<tr><td>6</td><td>/30</td><td>64</td><td>4</td><td>2</td></tr>
+</tbody></table></div>
+<p>All subnets above have the same size. When you need different sizes for different segments, you use variable length subnet masks. That method is covered in the <a href="/guides/vlsm-tutorial/">VLSM tutorial</a>.</p>
+
+<h2>When the boundary is not in the last octet</h2>
+<p>The same method works for any prefix. Only the interesting octet changes. Consider 172.20.45.9/20:</p>
+<ul>
+<li>The mask is 255.255.240.0, so the interesting octet is the third one, with a mask value of 240.</li>
+<li>The block size is 256 &minus; 240 = 16.</li>
+<li>The third octet of the address is 45. The largest multiple of 16 that is not above 45 is 32, so the network address is 172.20.32.0.</li>
+<li>The next subnet starts at 172.20.48.0, so the broadcast address is 172.20.47.255.</li>
+<li>There are 12 host bits, so the subnet has 2<sup>12</sup> &minus; 2 = 4,094 usable hosts.</li>
+</ul>
+<p>Octets after the interesting one are 0 in the network address and 255 in the broadcast address.</p>
+
+<h2>Common mistakes</h2>
+<ul>
+<li><strong>Forgetting the two reserved addresses.</strong> In a normal subnet the first address is the network address and the last is the broadcast address. Neither can be assigned to a host. See <a href="/guides/how-many-hosts-in-a-subnet/">how many hosts are in a subnet</a> for the /31 and /32 exceptions.</li>
+<li><strong>Mixing up the mask and the wildcard.</strong> The wildcard mask is the inverse of the subnet mask. For /26 the mask is 255.255.255.192 and the wildcard is 0.0.0.63.</li>
+<li><strong>Miscounting host bits.</strong> Always subtract the prefix from 32 before you do anything else.</li>
+<li><strong>Using the wrong octet.</strong> The interesting octet is the one where the mask changes from 255 to 0. For /26 it is the fourth, for /20 it is the third.</li>
+</ul>
+<p>To check your answers, use the <a href="/cidr-calculator/">CIDR calculator</a>. To practise the method with random questions and worked answers, try the <a href="/vlsm-calculator/">VLSM calculator</a>.</p>
+
+<h2>Frequently asked questions</h2>
+<details><summary>Why do networks get subnetted?</summary><p>Subnetting keeps broadcast domains small, lets you apply security policy between segments, makes it easier to summarize routes and avoids wasting addresses by giving every segment a block that fits it.</p></details>
+<details><summary>What is the fastest way to find a network address?</summary><p>Find the interesting octet, work out the block size as 256 minus the mask value in that octet, and round the address octet down to the nearest multiple of the block size. Set all later octets to 0.</p></details>
+<details><summary>Do I need to do the maths in binary?</summary><p>Not usually. Knowing the powers of two (128, 64, 32, 16, 8, 4, 2, 1) and the eight mask values is enough for the block size method. Binary is useful for understanding why the method works and for checking unusual cases.</p></details>
+<details><summary>How is subnetting different from supernetting?</summary><p>Subnetting splits a network into smaller ones by lengthening the prefix. Supernetting, also called route aggregation, combines several networks into a larger one by shortening the prefix. The <a href="/guides/cidr-notation-explained/">CIDR notation guide</a> explains aggregation.</p></details>

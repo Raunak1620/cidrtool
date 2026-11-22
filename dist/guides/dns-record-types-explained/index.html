@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DNS Record Types Explained: A, AAAA, CNAME, MX, TXT, NS and More | NetKit</title>
+<meta name="description" content="A plain-language guide to the common DNS record types, what each one does, and an example of how it looks in a zone file.">
+<link rel="canonical" href="https://ipsubnetcalculatorcidr.vercel.app/guides/dns-record-types-explained/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NetKit">
+<meta property="og:title" content="DNS Record Types Explained: A, AAAA, CNAME, MX, TXT, NS and More | NetKit">
+<meta property="og:description" content="A plain-language guide to the common DNS record types, what each one does, and an example of how it looks in a zone file.">
+<meta property="og:url" content="https://ipsubnetcalculatorcidr.vercel.app/guides/dns-record-types-explained/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0b6bde">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem('nk-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="stylesheet" href="/assets/css/style.css?v=858db731">
+<meta name="google-site-verification" content="oRgN_HmHnESYTVTZSc6DEeby8Fb9GwQx34rpckJhfDA"><meta name="google-adsense-account" content="ca-pub-2676656110030246"><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2676656110030246" crossorigin="anonymous"></script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "DNS Record Types Explained", "description": "A plain-language guide to the common DNS record types, what each one does, and an example of how it looks in a zone file.", "datePublished": "2026-11-22", "dateModified": "2026-11-22", "mainEntityOfPage": "https://ipsubnetcalculatorcidr.vercel.app/guides/dns-record-types-explained/", "author": {"@type": "Organization", "name": "NetKit"}, "publisher": {"@type": "Organization", "name": "NetKit"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://ipsubnetcalculatorcidr.vercel.app/"}, {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://ipsubnetcalculatorcidr.vercel.app/guides/"}, {"@type": "ListItem", "position": 3, "name": "DNS Record Types Explained", "item": "https://ipsubnetcalculatorcidr.vercel.app/guides/dns-record-types-explained/"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Why can't I add a CNAME at the root of my domain?", "acceptedAnswer": {"@type": "Answer", "text": "The root already needs SOA and NS records, and a CNAME cannot coexist with other records on the same name."}}, {"@type": "Question", "name": "What does TTL mean?", "acceptedAnswer": {"@type": "Answer", "text": "It is the number of seconds a resolver may cache a record before asking again."}}, {"@type": "Question", "name": "How many MX records should I have?", "acceptedAnswer": {"@type": "Answer", "text": "At least one. Having two or more with different priorities gives a backup if the primary is down."}}]}</script>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">/24</span>NetKit</a>
+<div class="header-actions"><button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">Theme</button></div>
+</div></header>
+<nav class="tabs" aria-label="Tools"><div class="wrap"><a class="tab" href="/what-is-my-ip/">My IP</a><a class="tab" href="/cidr-calculator/">CIDR Calculator</a><a class="tab" href="/dns-lookup/">DNS Lookup</a><a class="tab" href="/bgp-asn-lookup/">BGP / ASN</a><a class="tab" href="/subnet-chart/">Subnet Chart</a><a class="tab" href="/port-numbers/">Port Numbers</a><a class="tab" href="/ip-converter/">IP Converter</a><a class="tab" href="/bandwidth-calculator/">Bandwidth Calc</a><a class="tab" href="/wildcard-mask-calculator/">Wildcard Mask</a><a class="tab" href="/vlsm-calculator/">VLSM Calculator</a><a class="tab" href="/route-summarization/">Route Summary</a><a class="tab" href="/speed-test/">Speed Test</a><a class="tab" href="/latency-ping-test/">Ping Test</a><a class="tab" href="/traceroute-analyzer/">Traceroute</a><a class="tab" href="/open-port-checker/">Port Checker</a><a class="tab" href="/guides/" aria-current="page">Guides</a></div></nav>
+<script src="/assets/js/net.js?v=a6fe9476"></script>
+<script src="/assets/js/app.js?v=411fe5fd"></script>
+<main><div class="wrap"><div class="layout"><div class="content"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> &rsaquo; <a href="/guides/">Guides</a> &rsaquo; DNS Record Types Explained</nav><h1>DNS Record Types Explained</h1><p class="lead">Every DNS record has a type that says what the answer means. These are the ones you will meet most often and what each is for.</p><section class="article" style="margin-top:8px"><p>The Domain Name System maps names to data. Each piece of data is stored in a record with a type, a name, a value and a time to live (TTL), the number of seconds a resolver may cache it.</p>
+
+<h2>Common record types</h2>
+<div class="table-wrap"><table class="data"><thead><tr><th>Type</th><th>Purpose</th><th>Example value</th></tr></thead><tbody>
+<tr><td class="mono">A</td><td>Name to IPv4 address</td><td class="mono">192.0.2.10</td></tr>
+<tr><td class="mono">AAAA</td><td>Name to IPv6 address</td><td class="mono">2001:db8::10</td></tr>
+<tr><td class="mono">CNAME</td><td>Alias to another name</td><td class="mono">www.example.com. &rarr; example.com.</td></tr>
+<tr><td class="mono">MX</td><td>Mail servers, with a priority</td><td class="mono">10 mail.example.com.</td></tr>
+<tr><td class="mono">TXT</td><td>Free text, used for SPF, DKIM and verification</td><td class="mono">"v=spf1 include:_spf.example.net ~all"</td></tr>
+<tr><td class="mono">NS</td><td>Authoritative name servers for a zone</td><td class="mono">ns1.example.com.</td></tr>
+<tr><td class="mono">SOA</td><td>Zone metadata: primary server, serial, timers</td><td class="mono">ns1.example.com. admin.example.com. 2026112201 ...</td></tr>
+<tr><td class="mono">PTR</td><td>IP address back to a name (reverse DNS)</td><td class="mono">mail.example.com.</td></tr>
+<tr><td class="mono">SRV</td><td>Service location with port and priority</td><td class="mono">10 5 5060 sip.example.com.</td></tr>
+<tr><td class="mono">CAA</td><td>Which certificate authorities may issue certificates</td><td class="mono">0 issue "letsencrypt.org"</td></tr>
+</tbody></table></div>
+
+<h2>A and AAAA</h2>
+<p>These are the records most people think of. A domain can have several A records, and resolvers rotate through them, which gives a simple form of load balancing. Publish an AAAA record alongside an A record to support IPv6.</p>
+
+<h2>CNAME</h2>
+<p>A CNAME says "this name is an alias for that one". A name with a CNAME cannot have any other record type, which is why you cannot put a CNAME at the zone apex (such as <code>example.com</code>), where NS and SOA records must exist. Some providers offer an ALIAS or ANAME flattening feature to work around this.</p>
+
+<h2>MX and email records</h2>
+<p>MX records point to the mail servers for a domain. Lower priority numbers are tried first. Email authentication relies on TXT records: SPF lists the servers allowed to send, DKIM publishes the public key for signatures at a selector name, and DMARC at <code>_dmarc.example.com</code> says what receivers should do with failures.</p>
+
+<h2>NS and delegation</h2>
+<p>NS records name the servers that are authoritative for a zone. The parent zone holds NS records for the child, which is how delegation works. If those records disagree with the child's own NS set, resolution can fail in confusing ways, so check both.</p>
+
+<h2>PTR and reverse DNS</h2>
+<p>Reverse lookups use special zones. The address 192.0.2.10 is looked up as <code>10.2.0.192.in-addr.arpa</code>. Mail servers often check that the sending IP has a PTR record, so set one for any server that sends email.</p>
+
+<h2>Troubleshooting tips</h2>
+<ul>
+<li>Query the authoritative server directly to avoid cached results.</li>
+<li>After a change, the old value can persist for up to the old TTL, so lower the TTL before planned changes.</li>
+<li>Use the <a href="/dns-lookup/">DNS lookup tool</a> to check any record type from a public resolver.</li>
+</ul>
+
+<h2>Frequently asked questions</h2>
+<details><summary>Why can't I add a CNAME at the root of my domain?</summary><p>The root already needs SOA and NS records, and a CNAME cannot coexist with other records on the same name.</p></details>
+<details><summary>What does TTL mean?</summary><p>It is the number of seconds a resolver may cache a record before asking again.</p></details>
+<details><summary>How many MX records should I have?</summary><p>At least one. Having two or more with different priorities gives a backup if the primary is down.</p></details><p class="muted" style="margin-top:22px">Last updated November 22, 2026.</p></section><section class="related"><h2>Related tools</h2><div class="cards"><a class="card" href="/dns-lookup/"><span class="glyph">DNS</span><h3>DNS Lookup</h3><p>A, AAAA, MX, TXT, NS, CAA and more. Compare resolvers and reverse lookups.</p></a><a class="card" href="/what-is-my-ip/"><span class="glyph">IP</span><h3>My IP</h3><p>Your public IPv4 and IPv6, ISP, ASN and location. Look up any IP.</p></a><a class="card" href="/bgp-asn-lookup/"><span class="glyph">AS</span><h3>BGP / ASN</h3><p>ASN holder, announced prefixes, neighbours and RPKI status from RIPEstat.</p></a></div></section><section class="related"><h2>Keep reading</h2><div class="cards"><a class="card" href="/guides/public-vs-private-ip-and-nat/"><span class="glyph">Guide</span><h3>Public vs Private IP Addresses and NAT</h3><p>The difference between public and private IP addresses, how NAT and PAT let private hosts reach the internet, and the common problems NAT causes.</p></a><a class="card" href="/guides/ipv4-vs-ipv6-subnetting/"><span class="glyph">Guide</span><h3>IPv4 vs IPv6 Subnetting</h3><p>How IPv6 subnetting differs from IPv4: the /64 rule, no broadcast addresses, hexadecimal prefixes, and how to plan /48 and /56 allocations.</p></a><a class="card" href="/guides/bgp-asn-rpki-explained/"><span class="glyph">Guide</span><h3>BGP, ASNs and RPKI Explained</h3><p>What an autonomous system number is, how BGP uses it to exchange routes, how to read an AS path, and how RPKI route origin validation protects against route hijacks.</p></a></div></section></div></div></div></main>
+<footer class="site-footer"><div class="wrap">
+<div class="cols">
+<div><h4>NetKit</h4><p>Free online tools for network engineers. Calculators run in your browser; lookups use public APIs.</p></div>
+<div><h4>Tools</h4><ul><li><a href="/what-is-my-ip/">My IP</a></li><li><a href="/cidr-calculator/">CIDR Calculator</a></li><li><a href="/dns-lookup/">DNS Lookup</a></li><li><a href="/bgp-asn-lookup/">BGP / ASN</a></li><li><a href="/subnet-chart/">Subnet Chart</a></li><li><a href="/port-numbers/">Port Numbers</a></li><li><a href="/ip-converter/">IP Converter</a></li><li><a href="/bandwidth-calculator/">Bandwidth Calc</a></li><li><a href="/wildcard-mask-calculator/">Wildcard Mask</a></li><li><a href="/vlsm-calculator/">VLSM Calculator</a></li><li><a href="/route-summarization/">Route Summary</a></li><li><a href="/speed-test/">Speed Test</a></li><li><a href="/latency-ping-test/">Ping Test</a></li><li><a href="/traceroute-analyzer/">Traceroute</a></li><li><a href="/open-port-checker/">Port Checker</a></li></ul></div>
+<div><h4>Company</h4><ul><li><a href="/guides/">Guides</a></li><li><a href="/about/">About</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms of use</a></li><li><a href="/contact/">Contact</a></li></ul></div>
+</div>
+<p class="fine">&copy; 2026 NetKit. Results are provided for information only; verify before using them in production changes.</p>
+</div></footer>
+</body>
+</html>
